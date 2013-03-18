@@ -15,7 +15,7 @@ public class KOSolver {
 	 * @param I is the right-hand side of the equation, the input.
 	 * @return
 	 */
-	public static double[] solve(double x, double y, double I) {
+	public double[] solve(double x, double y, double I) {
 		double k1 = F(y) * h;
 		double l1 = G(x, y, I) * h;
 		
@@ -34,16 +34,15 @@ public class KOSolver {
 		return new double[]{x, y};
 	}
 	
-	/**
-	 * 
+	/** 
 	 * @param B the derivative
 	 * @return the right hand side of the equation x' = y
 	 */
-	private static double F(double y) {
+	private double F(double y) {
 		return y;
 	}
 	
-	private static double G(double x, double y, double I) {
+	private double G(double x, double y, double I) {
 		return (-(a + b) * y) - (a * b * x) + (a * b * I); // Try make this more precise
 	}
 }

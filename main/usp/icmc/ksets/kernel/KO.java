@@ -7,12 +7,18 @@ import static main.usp.icmc.ksets.kernel.Configuration.getTime;
 import static main.usp.icmc.ksets.kernel.Configuration.getTimePlus;
 import static main.usp.icmc.ksets.kernel.Configuration.getTimeMinus;
 
-public class KO implements Kset {
+/**
+ * Provides the implementation of a KO set
+ * @author Denis Piazentin
+ *
+ */
+public class KO implements Kset, Runnable {
 	private double[] activation = new double[Configuration.historySize];
 	private double derivative;
 	
 	private List<Connection> connections = new LinkedList<>();
 	private double externalStimulus = 0.0;
+	private KOSolver koSolver = new KOSolver();
 	
 	static final double q = Configuration.q;
 	
@@ -43,13 +49,20 @@ public class KO implements Kset {
 	}
 	
 	/**
+	 * Same as solve(), but returns void
+	 */
+	public void run() {
+		solve();
+	}
+	
+	/**
 	 * Solve the ODE using the current values from the connections and a given external input for the right hand side
 	 * of the equation.
 	 * Recalculate the current activation, accessible from getOutput(), and its derivative.
 	 * @return The resulting activation
 	 */
 	public double solve(double input) {
-		double[] result = KOSolver.solve(activation[getTime()], derivative, input);
+		double[] result = koSolver.solve(activation[getTime()], derivative, input);
 		activation[getTimePlus(1)] = result[0];
 		derivative = result[1];
 		return activation[getTimePlus(1)];

@@ -1,10 +1,11 @@
 package main.usp.icmc.ksets.kernel;
 
 
-public class K2Layer implements HasOutput {
+public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 
 	private KII[] k;
 	private Connection[][] lateralConnections;
+	private int id;
 	
 	private static final double alpha = Configuration.alpha;
 	
@@ -14,6 +15,7 @@ public class K2Layer implements HasOutput {
 	
 	public K2Layer(int size, double wee, double wei, double wie, double wii, double wLat_ee, double wLat_ii) {
 		k = new KII[size];
+		id = Configuration.getNextId();
 		lateralConnections = new Connection[size][size];
 		
 		for (int i = 0; i < size; ++i) {
@@ -130,6 +132,11 @@ public class K2Layer implements HasOutput {
 		
 		return output;
 	}
+
+
+	public void run(){
+		solve();
+	}
 	
 	public void train() {
 		// TODO understand and implement k3_filt.m in java, in the while, use an simple average
@@ -180,5 +187,12 @@ public class K2Layer implements HasOutput {
 		}
 		
 		return sum/(x.length - 1);
+	}
+
+	@Override
+	public int compareTo(Object o) {
+		if (o instanceof K2Layer) 
+			return (((K2Layer) o).id == this.id) ? 1 : 1;
+		return -1;
 	}
 }

@@ -41,5 +41,10 @@ public class Configuration {
 		timeMinus = timeMinus > 0 ? timeMinus : (historySize + timeMinus) % historySize;
 		return timeMinus;
 	}
+
+	private static int id = 0;
+	public static int getNextId() {
+		return id++;
+	}
 	
 }
