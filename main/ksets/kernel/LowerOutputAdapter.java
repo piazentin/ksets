@@ -1,4 +1,4 @@
-package main.usp.icmc.ksets.kernel;
+package main.ksets.kernel;
 
 /**
  * Can be used to create a connection who gets the output from the lower, inhibitory, K sets
@@ -24,7 +24,7 @@ public class LowerOutputAdapter implements HasOutput {
 	 * @return The lower output from the K set
 	 */
 	public double getOutput() {
-		return origin.getLowerOutput();
+		return origin.getInhibitoryOutput();
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class LowerOutputAdapter implements HasOutput {
 	 * @return The lower output from the K set
 	 */
 	public double getOutput(int delay) {
-		return origin.getLowerOutput(delay);
+		return origin.getInhibitoryOutput(delay);
 	}
 
 }

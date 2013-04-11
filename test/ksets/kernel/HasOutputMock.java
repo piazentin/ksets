@@ -1,6 +1,6 @@
-package test.usp.icmc.ksets.kernel;
+package test.ksets.kernel;
 
-import main.usp.icmc.ksets.kernel.HasOutput;
+import main.ksets.kernel.HasOutput;
 
 public class HasOutputMock implements HasOutput {
 	public double output;

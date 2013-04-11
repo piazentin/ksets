@@ -1,6 +1,6 @@
-package main.usp.icmc.ksets.kernel;
+package main.ksets.kernel;
 
-public class Configuration {
+public class Config {
 	
 	public static int historySize = 100;
 	public static int time = 0;
@@ -30,16 +30,9 @@ public class Configuration {
 		return time;
 	}
 	
-	public static int getTimePlus(int i) {
-		int timeplus = time + i;
-		timeplus = timeplus % historySize;
-		return timeplus;
-	}
-	
-	public static int getTimeMinus(int i) {
-		int timeMinus = time - (i % historySize);
-		timeMinus = timeMinus > 0 ? timeMinus : (historySize + timeMinus) % historySize;
-		return timeMinus;
+	public static int getTime(int i) {
+		int timeplus = (time + i) % historySize;
+		return (timeplus >= 0) ? timeplus : (historySize + timeplus) ;
 	}
 
 	private static int id = 0;

@@ -1,9 +1,5 @@
-package main.usp.icmc.ksets.kernel;
+package main.ksets.kernel;
 
-/**
- * Provides the implementation of a KI set
- * @author Denis Piazentin
- * */
 public class KI implements Kset {
 	
 	/**
@@ -11,13 +7,6 @@ public class KI implements Kset {
 	 */
 	private KO[] k = new KO[2];
 
-	/**
-	 * Initialize KI with random weights
-	 */
-	public KI() {
-		this(Math.random(), Math.random());
-	}
-	
 	/**
 	 * Create a KI with the defined connection weights
 	 * @param w01 connection weight from the first KO (k[0]) to the second (k[1]) 
@@ -27,8 +16,8 @@ public class KI implements Kset {
 		k[0] = new KO();
 		k[1] = new KO();
 		
-		k[0].registerConnection(k[1], w01);
-		k[1].registerConnection(k[0], w10);
+		k[0].connect(k[1], w01);
+		k[1].connect(k[0], w10);
 	}
 	
 	/**
@@ -36,16 +25,8 @@ public class KI implements Kset {
 	 * @param origin The origin node 
 	 * @param weight The connection weight
 	 */
-	public void registerConnection(HasOutput origin, double weight) {
-		k[0].registerConnection(new Connection(origin, weight));
-	}
-	
-	/**
-	 * Register a connection with the primary KO set of the KI set, given proper connection to be registered
-	 * @param connection The connection to be registered
-	 */
-	public void registerConnection(Connection connection) {
-		k[0].registerConnection(connection);
+	public void connect(HasOutput origin, double weight) {
+		k[0].connect(origin, weight);
 	}
 	
 	/**
@@ -57,25 +38,17 @@ public class KI implements Kset {
 		return k[0].getOutput();
 	}
 	
-	/**
-	 * Return the output of the network in the time t.
-	 * Output is from the first KO in the set (k[0])
-	 * @param delay the time t
-	 */
-	public double getOutput(int delay) {
-		return k[0].getOutput(delay);
+	public double getOutput(int i) {
+		return k[0].getOutput(i);
 	}
 
 	/**
 	 * Solve the ODE for all underlying KO
-	 * @return the newly calculated output (time t+1)
 	 */
-	public double solve() {
+	public void solve() {
 		for (int i = 0; i < k.length; i++) {
 			k[i].solve();
 		}
-		
-		return k[0].getNewOutput();
 	}
 	
 	/**

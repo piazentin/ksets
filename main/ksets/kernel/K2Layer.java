@@ -1,4 +1,4 @@
-package main.usp.icmc.ksets.kernel;
+package main.ksets.kernel;
 
 
 public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
@@ -7,15 +7,11 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 	private Connection[][] lateralConnections;
 	private int id;
 	
-	private static final double alpha = Configuration.alpha;
-	
-	public K2Layer(int size) {
-		this(size, 2, 1.5, -2.0, -1.0, 0.15, -0.1);
-	}
+	private static final double alpha = Config.alpha;
 	
 	public K2Layer(int size, double wee, double wei, double wie, double wii, double wLat_ee, double wLat_ii) {
 		k = new KII[size];
-		id = Configuration.getNextId();
+		id = Config.getNextId();
 		lateralConnections = new Connection[size][size];
 		
 		for (int i = 0; i < size; ++i) {
@@ -24,15 +20,12 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 		
 		for (int i = 0; i < size - 1; ++i) {
 			for (int j = 1; j < size; ++j) {
-				if (i != j) {
-					lateralConnections[i][j] = new Connection(k[j], wLat_ee);
-					lateralConnections[j][i] = new Connection(k[i], wLat_ee);
+				if (i != j) {					
+					k[i].connect(k[j], wLat_ee);
+					k[j].connect(k[i], wLat_ee);
 					
-					k[i].registerConnection(lateralConnections[i][j]);
-					k[j].registerConnection(lateralConnections[j][i]);
-					
-					k[i].registerLowerConnection(k[j], wLat_ii);
-					k[j].registerLowerConnection(k[i], wLat_ii);
+					k[i].connectInhibitory(k[j], wLat_ii);
+					k[j].connectInhibitory(k[i], wLat_ii);
 				}
 			}
 		}
@@ -42,27 +35,27 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 		this(size, defaultW1[0], defaultW1[1], defaultW1[2], defaultW1[3], defaultWLat1[0], defaultWLat1[1]);
 	}
 
-	public double[] getFullOutput() {
-		return this.getFullOutput(0);
+	public double[] getLayerOutput() {
+		return this.getLayerOutput(0);
 	}
 	
-	public double[] getFullOutput(int delay) {
+	public double[] getLayerOutput(int t) {
 		double[] output = new double[this.k.length];
 		for (int i = 0; i < this.k.length; ++i) {
-			output[i] = this.k[i].getOutput(delay);
+			output[i] = this.k[i].getOutput(t);
 		}
 		
 		return output;
 	}
 	
-	public double[] getFullLowerOutput() {
-		return this.getFullOutput(0);
+	public double[] getLayerInhibitoryOutput() {
+		return this.getLayerInhibitoryOutput(0);
 	}
 	
-	public double[] getFullLowerOutput(int delay) {
+	public double[] getLayerInhibitoryOutput(int t) {
 		double[] output = new double[this.k.length];
 		for (int i = 0; i < this.k.length; ++i) {
-			output[i] = this.k[i].getLowerOutput(delay);
+			output[i] = this.k[i].getInhibitoryOutput(t);
 		}
 		
 		return output;
@@ -72,27 +65,25 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 		return this.getOutput(0);
 	}
 	
-	public double getOutput(int delay) {
-		// TODO can be optimized by saving a history of summed activations for the layer
+	public double getOutput(int t) {
 		double sum = 0.0;
 		
 		for (int i = 0; i < this.k.length; ++i) {
-			sum += this.k[i].getOutput(delay);
+			sum += this.k[i].getOutput(t);
 		}
 		
 		return sum;
 	}
 	
-	public double getLowerOutput() {
-		return this.getLowerOutput(0);
+	public double getInhibitoryOutput() {
+		return this.getInhibitoryOutput(0);
 	}
 	
-	public double getLowerOutput(int delay) {
-		// TODO can be optimized by saving a history of summed activations for the layer
+	public double getInhibitoryOutput(int t) {
 		double sum = 0.0;
 		
 		for (int i = 0; i < this.k.length; ++i) {
-			sum += this.k[i].getLowerOutput(delay);
+			sum += this.k[i].getInhibitoryOutput(t);
 		}
 		
 		return sum;
@@ -104,42 +95,37 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 		}
 	}
 	
-	public void registerConnection(HasOutput origin, double weight, int delay) {
+	public void connect(HasOutput origin, double weight, int delay) {
 		for (int i = 0; i < this.k.length; ++i) {
-			k[i].registerConnection(origin, weight, delay);
+			k[i].connect(origin, weight, delay);
 		}
 	}
 	
-	public void registerConnection(HasOutput origin, double weight) {
-		registerConnection(origin, weight, 0);
+	public void connect(HasOutput origin, double weight) {
+		connect(origin, weight, 0);
 	}
 	
-	public void registerLowerConnection(HasOutput origin, double weight, int delay) {
+	public void connectInhibitory(HasOutput origin, double weight, int delay) {
 		for (int i = 0; i < this.k.length; ++i) {
-			k[i].registerLowerConnection(origin, weight, delay);
+			k[i].connectInhibitory(origin, weight, delay);
 		}
 	}
 
-	public void registerLowerConnection(HasOutput origin, double weight) {
-		registerLowerConnection(origin, weight, 0);
+	public void connectInhibitory(HasOutput origin, double weight) {
+		connectInhibitory(origin, weight, 0);
 	}
 	
-	public double[] solve() {
-		double[] output = new double[this.k.length];
+	public void solve() {
 		for (int i = 0; i < this.k.length; i++) {
 			k[i].solve();
 		}
-		
-		return output;
 	}
-
 
 	public void run(){
 		solve();
 	}
 	
 	public void train() {
-		// TODO understand and implement k3_filt.m in java, in the while, use an simple average
 		double meanStd = 0.0;
 		double[] std = new double[lateralConnections.length]; 
 		for (int i = 0; i < lateralConnections.length; ++i) {
@@ -159,7 +145,6 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 				}
 			}
 		}
-		
 	}
 	
 	private double stardardDeviation(Connection[] x, int index) {
@@ -192,7 +177,7 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 	@Override
 	public int compareTo(Object o) {
 		if (o instanceof K2Layer) 
-			return (((K2Layer) o).id == this.id) ? 1 : 1;
+			return (((K2Layer) o).id == this.id) ? 0 : 1;
 		return -1;
 	}
 }

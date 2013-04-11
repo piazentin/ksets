@@ -1,4 +1,4 @@
-package main.usp.icmc.ksets.kernel;
+package main.ksets.kernel;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,13 +33,13 @@ public class Main {
 		int inactive = 300;
 		
 		
-		k3Step2(k3, perturbed, 1);
-		k3Step2(k3, emptyArray, 499);
+		k3.stepAsync(perturbed, 1);
+		k3.stepAsync(emptyArray, 499);
 		
 		for (int i = 0; i < data.size(); ++i) {
 			double[] stimulus = Arrays.copyOf(data.get(i), dataSize);
-			k3Step2(k3, stimulus, active);
-			k3Step2(k3, emptyArray, inactive);
+			k3.stepAsync(stimulus, active);
+			k3.stepAsync(emptyArray, inactive);
 		}
 		
 	}
@@ -59,31 +59,15 @@ public class Main {
 		int inactive = 300;
 		
 		
-		k3Step(k3, perturbed, 1);
-		k3Step(k3, emptyArray, 499);
+		k3.step(perturbed, 1);
+		k3.step(emptyArray, 499);
 		
 		for (int i = 0; i < data.size(); ++i) {
 			double[] stimulus = Arrays.copyOf(data.get(i), dataSize);
-			k3Step(k3, stimulus, active);
-			k3Step(k3, emptyArray, inactive);
+			k3.step(stimulus, active);
+			k3.step(emptyArray, inactive);
 		}
 		
-	}
-	
-	private static void k3Step(KIII k3, double[] stimulus, int times) {
-		k3.setExternalStimulus(stimulus);
-		for (int i = 0; i < times; ++i) {
-			k3.solve();
-			Configuration.incTime();
-		}
-	}
-
-	private static void k3Step2(KIII k3, double[] stimulus, int times) {
-		k3.setExternalStimulus(stimulus);
-		for (int i = 0; i < times; ++i) {
-			k3.solve2();
-			Configuration.incTime();
-		}
 	}
 	
 	private static ArrayList<double[]> readTable(String filename) throws FileNotFoundException {
@@ -122,12 +106,14 @@ public class Main {
 		
 		ko.setExternalStimulus(1);
 		for (int i = 0; i < 1; ++i) {
-			System.out.print(" " + ko.solve());
+			ko.solve();
+			System.out.print(" " + ko.getOutput(1));
 		}
 		
 		ko.setExternalStimulus(0);
 		for (int i = 0; i < 100; ++i) {
-			System.out.print(" " + ko.solve());
+			ko.solve();
+			System.out.print(" " + ko.getOutput(1));
 		}
 	}
 	
@@ -136,14 +122,16 @@ public class Main {
 		
 		ki.setExternalStimulus(1);
 		for (int i = 0; i < 1; ++i) {
-			System.out.print(" " + ki.solve());
-			Configuration.incTime();
+			ki.solve();
+			System.out.print(" " + ki.getOutput(1));
+			Config.incTime();
 		}
 		
 		ki.setExternalStimulus(0);
 		for (int i = 0; i < 100; ++i) {
-			System.out.print(" " + ki.solve());
-			Configuration.incTime();
+			ki.solve();
+			System.out.print(" " + ki.getOutput(1));
+			Config.incTime();
 		}
 	}
 	
@@ -156,14 +144,16 @@ public class Main {
 		
 		k.setExternalStimulus(1);
 		for (int i = 0; i < 1; ++i) {
-			System.out.print(" " + k.solve());
-			Configuration.incTime();
+			k.solve();
+			System.out.print(" " + k.getOutput(1));
+			Config.incTime();
 		}
 		
 		k.setExternalStimulus(0);
 		for (int i = 0; i < 1200; ++i) {
-			System.out.print(" " + k.solve());
-			Configuration.incTime();
+			k.solve();
+			System.out.print(" " + k.getOutput(1));
+			Config.incTime();
 		}
 	}
 }

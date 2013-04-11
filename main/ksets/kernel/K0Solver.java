@@ -1,11 +1,10 @@
-package main.usp.icmc.ksets.kernel;
+package main.ksets.kernel;
 
-// TODO doubles lacks precision. Consider using BigDecimal in future versions
-public class KOSolver {
+public class K0Solver {
 	
-	private static double a = Configuration.a;
-	private static double b = Configuration.b;
-	private static double h = Configuration.h; // time step / time resolution for RungeKutta solver / dT
+	private static double a = Config.a;
+	private static double b = Config.b;
+	private static double h = Config.h; // time step / time resolution for RungeKutta solver / dT
 
 	/**
 	 * Solving the ODE by Runge-Kutta's method. 
@@ -25,7 +24,7 @@ public class KOSolver {
 		double k3 = F(y + l2/2) * h;
 		double l3 = G(x + k2/2, y + l2/2, I) * h;
 		
-		double k4 = F(y + l2) * h; // 0.0531 (Matlab) x 0.05009 (Java)
+		double k4 = F(y + l2) * h;
 		double l4 = G(x + k3, y + l3, I) * h;
 		
 		x = x + (k1 + 2*k2 + 2*k3 + k4)/6;
@@ -43,6 +42,6 @@ public class KOSolver {
 	}
 	
 	private double G(double x, double y, double I) {
-		return (-(a + b) * y) - (a * b * x) + (a * b * I); // Try make this more precise
+		return (-(a + b) * y) - (a * b * x) + (a * b * I);
 	}
 }

@@ -1,4 +1,4 @@
-package main.usp.icmc.ksets.kernel;
+package main.ksets.kernel;
 
 /**
  * Implements the connection between two K sets.

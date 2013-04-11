@@ -1,8 +1,8 @@
-package test.usp.icmc.ksets.kernel;
+package test.ksets.kernel;
 
 import static org.junit.Assert.*;
+import main.ksets.kernel.K0Solver;
 
-import main.usp.icmc.ksets.kernel.KOSolver;
 
 import org.junit.Test;
 
@@ -10,7 +10,7 @@ public class KOSolverTest {
 
 	@Test
 	public void testSolve() {
-		KOSolver kSolver = new KOSolver();
+		K0Solver kSolver = new K0Solver();
 		
 		double[] actuals = kSolver.solve(1, 1, 1);
 		assertArrayEquals(new double[]{1.3962, 0.6106}, actuals, 4);
