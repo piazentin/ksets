@@ -20,13 +20,12 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 		
 		for (int i = 0; i < size - 1; ++i) {
 			for (int j = 1; j < size; ++j) {
-				if (i != j) {					
-					latConnections[i][j] = k[i].connect(k[j], wLat_ee);
-					latConnections[j][i] = k[j].connect(k[i], wLat_ee);
-										
-					k[i].connectInhibitory(k[j], wLat_ii);
-					k[j].connectInhibitory(k[i], wLat_ii);
-				}
+				if (i == j) continue; 
+				
+				latConnections[i][j] = k[i].connect(k[j], wLat_ee);
+				latConnections[j][i] = k[j].connect(k[i], wLat_ee);									
+				k[i].connectInhibitory(k[j], wLat_ii);
+				k[j].connectInhibitory(k[i], wLat_ii);
 			}
 		}
 	}
@@ -127,51 +126,60 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 	
 	public void train() {
 		double meanStd = 0.0;
-		double[] std = new double[latConnections.length]; 
+		double[] std = new double[latConnections.length];
+		
 		for (int i = 0; i < latConnections.length; ++i) {
-			std[i] = stardardDeviation(latConnections[i], i);
+			std[i] = stardardDeviation(getActivations(latConnections[i], i));
 			meanStd += std[i];
 		}
 		
+		meanStd = meanStd / std.length;	
 		double deltaW = 0;
 		
 		for (int i = 0; i < latConnections.length - 1; ++i) {
 			for (int j = 1; j < latConnections.length; ++j) {
-				if (i != j) {
-					deltaW = alpha * (std[i] - meanStd) * (std[j] - meanStd);
-					if (deltaW > 0) {
-						latConnections[i][j].setWeight(latConnections[i][j].getWeight() + deltaW);
-					}
-				}
+				if (i == j) continue;
+				
+				deltaW = alpha * (std[i] - meanStd) * (std[j] - meanStd);
+				if (deltaW > 0) {
+					latConnections[i][j].setWeight(latConnections[i][j].getWeight() + deltaW);
+				}	
 			}
 		}
 	}
 	
-	private double stardardDeviation(Connection[] x, int skip) {
-		double sum = 0;
-		double x_ = mean(x, skip);
+	private double[] getActivations(Connection[] connections, int skip) {
+		double[] act = new double[connections.length - 1];
 		
-		for (int i = 0; i < x.length; ++i) {
+		for (int i = 0; i < connections.length; i++) {
+			int j = i < skip ? i : i - 1;
 			if (i != skip) {
-				sum += Math.pow(x[i].getOutput() - x_, 2);
+				act[j] = connections[i].getOutput();
 			}
 		}
 		
-		sum = Math.sqrt(sum/(x.length - 1));
-		
-		return sum;
+		return act;
 	}
 	
-	private double mean(Connection[] x, int skip) {
+	private double stardardDeviation(double[] x) {
+		double sum = 0;
+		double x_ = mean(x);
+		
+		for (int i = 0; i < x.length; ++i) {
+			sum += Math.pow(x[i] - x_, 2);
+		}
+		
+		return Math.sqrt(sum/x.length);	
+	}
+	
+	private double mean(double[] x) {
 		double sum = 0;
 		
 		for (int i = 0; i < x.length; ++i) {
-			if (i != skip) {
-				sum += x[i].getOutput();
-			}
+			sum += x[i];
 		}
 		
-		return sum/(x.length - 1);
+		return sum/x.length;
 	}
 	
 	@Override

@@ -25,6 +25,7 @@ public class Main {
 			System.out.println(Arrays.toString(layer.getLayerOutput()));
 			Config.incTime();
 			layer.solve();
+			layer.train();
 		}
 	}
 	
