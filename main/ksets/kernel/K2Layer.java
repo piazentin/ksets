@@ -4,7 +4,7 @@ package main.ksets.kernel;
 public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 
 	private KII[] k;
-	private Connection[][] lateralConnections;
+	private Connection[][] latConnections;
 	private int id;
 	
 	private static final double alpha = Config.alpha;
@@ -12,7 +12,7 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 	public K2Layer(int size, double wee, double wei, double wie, double wii, double wLat_ee, double wLat_ii) {
 		k = new KII[size];
 		id = Config.getNextId();
-		lateralConnections = new Connection[size][size];
+		latConnections = new Connection[size][size];
 		
 		for (int i = 0; i < size; ++i) {
 			k[i] = new KII(wee, wei, wie, wii);
@@ -21,9 +21,9 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 		for (int i = 0; i < size - 1; ++i) {
 			for (int j = 1; j < size; ++j) {
 				if (i != j) {					
-					k[i].connect(k[j], wLat_ee);
-					k[j].connect(k[i], wLat_ee);
-					
+					latConnections[i][j] = k[i].connect(k[j], wLat_ee);
+					latConnections[j][i] = k[j].connect(k[i], wLat_ee);
+										
 					k[i].connectInhibitory(k[j], wLat_ii);
 					k[j].connectInhibitory(k[i], wLat_ii);
 				}
@@ -127,20 +127,20 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 	
 	public void train() {
 		double meanStd = 0.0;
-		double[] std = new double[lateralConnections.length]; 
-		for (int i = 0; i < lateralConnections.length; ++i) {
-			std[i] = stardardDeviation(lateralConnections[i], i);
+		double[] std = new double[latConnections.length]; 
+		for (int i = 0; i < latConnections.length; ++i) {
+			std[i] = stardardDeviation(latConnections[i], i);
 			meanStd += std[i];
 		}
 		
 		double deltaW = 0;
 		
-		for (int i = 0; i < lateralConnections.length - 1; ++i) {
-			for (int j = 1; j < lateralConnections.length; ++j) {
+		for (int i = 0; i < latConnections.length - 1; ++i) {
+			for (int j = 1; j < latConnections.length; ++j) {
 				if (i != j) {
 					deltaW = alpha * (std[i] - meanStd) * (std[j] - meanStd);
 					if (deltaW > 0) {
-						lateralConnections[i][j].setWeight(lateralConnections[i][j].getWeight() + deltaW);
+						latConnections[i][j].setWeight(latConnections[i][j].getWeight() + deltaW);
 					}
 				}
 			}
