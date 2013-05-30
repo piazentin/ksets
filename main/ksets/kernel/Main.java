@@ -10,6 +10,25 @@ public class Main {
 	
 	public static void main(String[] args) throws FileNotFoundException {
 		//simulateKII();
+		//k3sim();
+		layerSim();
+	}
+	
+	private static void layerSim() throws FileNotFoundException {
+		ArrayList<double[]> data = readTable("C:\\iris.txt");
+		int dataSize = data.get(0).length - 1;
+		K2Layer layer = new K2Layer(dataSize, Config.defaultW1, Config.defaultWLat1);
+		layer.setExternalStimulus(new double[]{1,1,1,1,1});
+		layer.solve();
+		layer.setExternalStimulus(new double[]{0,0,0,0,0});
+		for (int i = 0; i < 1000; i++) {
+			System.out.println(Arrays.toString(layer.getLayerOutput()));
+			Config.incTime();
+			layer.solve();
+		}
+	}
+	
+	private static void k3sim() throws FileNotFoundException {
 		long t1 = System.currentTimeMillis();
 		simulateK3();
 		System.out.println("time = " + (System.currentTimeMillis() - t1)/1000.0);

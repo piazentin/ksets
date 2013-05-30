@@ -15,17 +15,24 @@ public class KO implements Kset, Runnable {
 	
 	static final double q = Config.q;
 	
+	public KO() {
+		activation[getTime()] = Math.random() / 100;
+		derivative = Math.random() / 100;
+	}
+	
 	/**
 	 * Register a connection within the KO, given the origin node and the connection weight
 	 * @param origin origin node 
 	 * @param weight connection weight
 	 */
-	public void connect(HasOutput origin, double weight) {
-		connections.add(new Connection(origin, weight));
+	public Connection connect(HasOutput origin, double weight) {
+		return connect(origin, weight, 0);
 	}
 	
-	public void connect(HasOutput origin, double weight, int delay) {
-		connections.add(new Connection(origin, weight, delay));	
+	public Connection connect(HasOutput origin, double weight, int delay) {
+		Connection con = new Connection(origin, weight, delay);
+		connections.add(con);
+		return con;
 	}
 
 	/**

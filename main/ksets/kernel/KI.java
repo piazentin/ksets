@@ -25,8 +25,8 @@ public class KI implements Kset {
 	 * @param origin The origin node 
 	 * @param weight The connection weight
 	 */
-	public void connect(HasOutput origin, double weight) {
-		k[0].connect(origin, weight);
+	public Connection connect(HasOutput origin, double weight) {
+		return k[0].connect(origin, weight);
 	}
 	
 	/**
