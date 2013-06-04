@@ -141,4 +141,11 @@ public class KII implements Kset, Runnable {
 			k[i].solve();
 		}
 	}
+	
+	/**
+	 * @return The history of activation.
+	 */
+	public double[] getActivations() {
+		return k[0].getActivations();
+	}
 }

@@ -91,4 +91,20 @@ public class KO implements Kset, Runnable {
 	public double sigmoid(double x) {
 		return q * (1 - Math.exp(-(Math.exp(x)-1)/q));
 	}
+	
+	/**
+	 * @return The history of activation.
+	 */
+	public double[] getActivations() {
+		double[] act = new double[activation.length];
+		int j =0;
+		for (int i = getTime(1); i < activation.length; ++i) {
+			act[j++] = activation[i];
+		}
+		for (int i = 0; i < getTime(1); ++i) {
+			act[j++] = activation[i];
+		}
+		
+		return act;
+	}
 }

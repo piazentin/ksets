@@ -2,7 +2,8 @@ package main.ksets.kernel;
 
 public class Config {
 	
-	public static int historySize = 100;
+	public static int active = 100; 
+	public static int historySize = 100; // the historySize must have at least the size of active phase 
 	public static int time = 0;
 	
 	public static final double q = 5;
