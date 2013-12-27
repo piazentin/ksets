@@ -126,10 +126,10 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 	
 	public void train() {
 		double meanStd = 0.0;
-		double[] std = new double[latConnections.length];
+		double[] std = new double[k.length];
 		
 		for (int i = 0; i < latConnections.length; ++i) {
-			std[i] = stardardDeviation(getActivations(latConnections[i], i));
+			std[i] = stardardDeviation(k[i].getActivation());
 			meanStd += std[i];
 		}
 		
@@ -146,19 +146,6 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 				}	
 			}
 		}
-	}
-	
-	private double[] getActivations(Connection[] connections, int skip) {
-		double[] act = new double[connections.length - 1];
-		
-		for (int i = 0; i < connections.length; i++) {
-			int j = i < skip ? i : i - 1;
-			if (i != skip) {
-				act[j] = connections[i].getOutput();
-			}
-		}
-		
-		return act;
 	}
 	
 	private double stardardDeviation(double[] x) {

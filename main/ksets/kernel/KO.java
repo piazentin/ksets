@@ -1,5 +1,6 @@
 package main.ksets.kernel;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -90,5 +91,31 @@ public class KO implements Kset, Runnable {
 	 */
 	public double sigmoid(double x) {
 		return q * (1 - Math.exp(-(Math.exp(x)-1)/q));
+	}
+	
+	/**
+	 * 
+	 */
+	public double[] getActivation() {
+		int from = getTime(-Config.stableActivation);
+		int to = getTime();
+		
+		if (to > from) {
+			return Arrays.copyOfRange(activation, from, to);
+		} else {
+			double[] pt1 = Arrays.copyOfRange(activation, from, activation.length);
+			double[] pt2 = Arrays.copyOfRange(activation, 0, to);
+			double[] activations = new double[pt1.length + pt2.length];
+			
+			for (int i = 0; i < pt1.length; i++) {
+				activations[i] = pt1[i];
+			}
+			
+			for (int i = 0; i < pt2.length; i++) {
+				activations[i + pt1.length] = pt2[i];
+			}
+			
+			return activations;
+		}
 	}
 }

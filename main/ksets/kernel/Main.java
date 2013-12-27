@@ -8,14 +8,19 @@ import java.util.Scanner;
 
 public class Main {
 	
+	static String testFile = "C:\\Users\\Denis\\Dropbox\\projects\\ksetsm\\k3_iris\\iris.txt";
+	
 	public static void main(String[] args) throws FileNotFoundException {
 		//simulateKII();
 		//k3sim();
-		layerSim();
+		//layerSim();
+		long t1 = System.currentTimeMillis();
+		simulateK3();
+		System.out.println("time = " + (System.currentTimeMillis() - t1)/1000.0);
 	}
 	
 	private static void layerSim() throws FileNotFoundException {
-		ArrayList<double[]> data = readTable("C:\\iris.txt");
+		ArrayList<double[]> data = readTable(testFile);
 		int dataSize = data.get(0).length - 1;
 		K2Layer layer = new K2Layer(dataSize, Config.defaultW1, Config.defaultWLat1);
 		layer.setExternalStimulus(new double[]{1,1,1,1,1});
@@ -39,7 +44,7 @@ public class Main {
 	}
 
 	private static void simulateK32() throws FileNotFoundException {
-		ArrayList<double[]> data = readTable("C:\\iris.txt");
+		ArrayList<double[]> data = readTable(testFile);
 		int dataSize = data.get(0).length - 1;
 		KIII k3 = new KIII(dataSize);
 		double[] emptyArray = new double[dataSize];
@@ -65,7 +70,7 @@ public class Main {
 	}
 	
 	private static void simulateK3() throws FileNotFoundException {
-		ArrayList<double[]> data = readTable("C:\\iris.txt");
+		ArrayList<double[]> data = readTable(testFile);
 		int dataSize = data.get(0).length - 1;
 		KIII k3 = new KIII(dataSize);
 		double[] emptyArray = new double[dataSize];

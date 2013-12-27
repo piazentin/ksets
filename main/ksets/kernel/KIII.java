@@ -17,14 +17,15 @@ public class KIII {
 		k3[1] = new K2Layer(size, Config.defaultW2, Config.defaultWLat2);
 		k3[2] = new K2Layer(size, Config.defaultW3, Config.defaultWLat3);
 		
-		k3[0].connect(k3[1], 0.05, -1);
-		k3[0].connectInhibitory(k3[1], 0.25, -1);
+		k3[1].connect(k3[0], 1, -1);
+		k3[2].connect(k3[0], 1, -1);
 		
-		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.05, -1);
-		k3[1].connect(k3[0], 0.15, -1);
+		k3[0].connect(k3[1], 0.5, -17);
+		k3[0].connectInhibitory(k3[1], 0.6, -25);
+		k3[2].connect(k3[1], 1, 1);
 		
-		k3[1].connectInhibitory(k3[2], 0.2, -1);
-		k3[2].connect(k3[0], 0.6, -1);
+		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.5, 25);
+		k3[1].connectInhibitory(k3[2], 0.5, 25);
 		
 		pool = new ThreadPoolExecutor(4, 10, 10, TimeUnit.NANOSECONDS, new PriorityBlockingQueue<Runnable>());	
 	}
@@ -72,5 +73,4 @@ public class KIII {
 			Config.incTime();
 		}
 	}
-	
 }

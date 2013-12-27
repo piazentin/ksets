@@ -2,8 +2,18 @@ package main.ksets.kernel;
 
 public class Config {
 	
-	public static int historySize = 100;
+	public static int historySize = 300;
 	public static int time = 0;
+	
+	// Duration in <solve> cicles of the "active" and "resting" periods of the network
+	public static int active = 300;
+	public static int rest	 = 200;
+	
+	public static double alpha = 0.0125;
+	
+	// Period of the activation that must be used for computing the training correlation
+	// Must be smaller than active and historySize
+	public static int stableActivation = (int) Math.floor(active / 2);
 	
 	public static final double q = 5;
 	
@@ -17,9 +27,7 @@ public class Config {
 	
 	public static final double[] defaultWLat1 = {0.15, -0.1};
 	public static final double[] defaultWLat2 = {0.2,  -0.2};
-	public static final double[] defaultWLat3 = {0.15, -0.1};
-	
-	public static final double alpha = 0.0125;
+	public static final double[] defaultWLat3 = {0.15, -0.1};	
 	
 	public static int getTime() {
 		return time;
