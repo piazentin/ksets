@@ -2,7 +2,12 @@ package main.ksets.kernel;
 
 public class Config {
 	
+<<<<<<< HEAD
 	public static int historySize = 300;
+=======
+	public static int active = 100; 
+	public static int historySize = 100; // the historySize must have at least the size of active phase 
+>>>>>>> c3d9e7a8b45cb9d8da60a3579c7f869ec3983433
 	public static int time = 0;
 	
 	// Duration in <solve> cicles of the "active" and "resting" periods of the network

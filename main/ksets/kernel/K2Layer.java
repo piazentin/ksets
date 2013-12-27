@@ -1,5 +1,7 @@
 package main.ksets.kernel;
 
+import java.util.Arrays;
+
 
 public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 
@@ -127,10 +129,20 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 	public void train() {
 		double meanStd = 0.0;
 		double[] std = new double[k.length];
+<<<<<<< HEAD
 		
 		for (int i = 0; i < latConnections.length; ++i) {
 			std[i] = stardardDeviation(k[i].getActivation());
+=======
+		
+		Filter f = new Filter();
+		
+		for (int i = 0; i < k.length; ++i) {
+			double[] act = k[i].getActivations();
+			std[i] = stardardDeviation(f.k3_filt(Arrays.copyOfRange(act, Math.round(Config.active/2), act.length)));
+>>>>>>> c3d9e7a8b45cb9d8da60a3579c7f869ec3983433
 			meanStd += std[i];
+			System.out.print(std[i] + " ");
 		}
 		
 		meanStd = meanStd / std.length;	

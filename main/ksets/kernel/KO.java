@@ -94,6 +94,7 @@ public class KO implements Kset, Runnable {
 	}
 	
 	/**
+<<<<<<< HEAD
 	 * 
 	 */
 	public double[] getActivation() {
@@ -117,5 +118,20 @@ public class KO implements Kset, Runnable {
 			
 			return activations;
 		}
+=======
+	 * @return The history of activation.
+	 */
+	public double[] getActivations() {
+		double[] act = new double[activation.length];
+		int j =0;
+		for (int i = getTime(1); i < activation.length; ++i) {
+			act[j++] = activation[i];
+		}
+		for (int i = 0; i < getTime(1); ++i) {
+			act[j++] = activation[i];
+		}
+		
+		return act;
+>>>>>>> c3d9e7a8b45cb9d8da60a3579c7f869ec3983433
 	}
 }

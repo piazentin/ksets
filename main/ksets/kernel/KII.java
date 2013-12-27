@@ -141,6 +141,7 @@ public class KII implements Kset, Runnable {
 			k[i].solve();
 		}
 	}
+<<<<<<< HEAD
 
 	/**
 	 * Gets the history of activation from KII-set, from its top KO.
@@ -148,5 +149,13 @@ public class KII implements Kset, Runnable {
 	 */
 	public double[] getActivation() {
 		return k[0].getActivation();
+=======
+	
+	/**
+	 * @return The history of activation.
+	 */
+	public double[] getActivations() {
+		return k[0].getActivations();
+>>>>>>> c3d9e7a8b45cb9d8da60a3579c7f869ec3983433
 	}
 }
