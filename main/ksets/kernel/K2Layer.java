@@ -1,15 +1,21 @@
 package main.ksets.kernel;
 
+import java.io.Serializable;
 
-public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 
+public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Serializable {
+
+	private static final long serialVersionUID = 5708993646173660914L;
 	private KII[] k;
+	private int size;
 	private Connection[][] latConnections;
 	private int id;
 	
 	private static final double alpha = Config.alpha;
 	
 	public K2Layer(int size, double wee, double wei, double wie, double wii, double wLat_ee, double wLat_ii) {
+		this.size = size;
+		
 		k = new KII[size];
 		id = Config.getNextId();
 		latConnections = new Connection[size][size];
@@ -71,7 +77,7 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 			sum += this.k[i].getOutput(t);
 		}
 		
-		return sum;
+		return sum/this.k.length;
 	}
 	
 	public double getInhibitoryOutput() {
@@ -85,7 +91,7 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 			sum += this.k[i].getInhibitoryOutput(t);
 		}
 		
-		return sum;
+		return sum/this.k.length;
 	}
 	
 	public void setExternalStimulus(double[] stimulus) {
@@ -128,7 +134,7 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 		double meanStd = 0.0;
 		double[] std = new double[k.length];
 		
-		for (int i = 0; i < latConnections.length; ++i) {
+		for (int i = 0; i < this.size; ++i) {
 			std[i] = stardardDeviation(k[i].getActivation());
 			meanStd += std[i];
 		}
@@ -136,8 +142,8 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 		meanStd = meanStd / std.length;	
 		double deltaW = 0;
 		
-		for (int i = 0; i < latConnections.length - 1; ++i) {
-			for (int j = 1; j < latConnections.length; ++j) {
+		for (int i = 0; i < this.size - 1; ++i) {
+			for (int j = 1; j < this.size; ++j) {
 				if (i == j) continue;
 				
 				deltaW = alpha * (std[i] - meanStd) * (std[j] - meanStd);
@@ -146,6 +152,26 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object> {
 				}	
 			}
 		}
+	}
+	
+	public double[][] getActivation() {
+		double[][] activation = new double[size][];
+		
+		for (int i = 0; i < this.size; ++i) {
+			activation[i] = k[i].getActivation();
+		}
+		
+		return activation;
+	}
+	
+	public double[] getActivationDeviation() {
+		double[] std = new double[k.length];
+		
+		for (int i = 0; i < this.size; ++i) {
+			std[i] = stardardDeviation(k[i].getActivation());
+		}
+		
+		return std;
 	}
 	
 	private double stardardDeviation(double[] x) {

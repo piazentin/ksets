@@ -1,12 +1,15 @@
 package main.ksets.kernel;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import static main.ksets.kernel.Config.getTime;
 
-public class KO implements Kset, Runnable {
+public class KO implements Kset, Runnable, Serializable {
+
+	private static final long serialVersionUID = -1183011352569488440L;
 	private double[] activation = new double[Config.historySize];
 	private double derivative;
 	
@@ -17,8 +20,8 @@ public class KO implements Kset, Runnable {
 	static final double q = Config.q;
 	
 	public KO() {
-		activation[getTime()] = Math.random() / 100;
-		derivative = Math.random() / 100;
+		activation[getTime()] = 0;//Math.random() / 100;
+		derivative = 0;//Math.random() / 100;
 	}
 	
 	/**

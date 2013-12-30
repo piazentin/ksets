@@ -1,7 +1,10 @@
 package main.ksets.kernel;
 
-public class K0Solver {
+import java.io.Serializable;
+
+public class K0Solver implements Serializable {
 	
+	private static final long serialVersionUID = -8692030193716613318L;
 	private static double a = Config.a;
 	private static double b = Config.b;
 	private static double h = Config.h; // time step / time resolution for RungeKutta solver / dT

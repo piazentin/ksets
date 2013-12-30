@@ -1,26 +1,27 @@
 package main.ksets.kernel;
 
-import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Scanner;
 
 public class Main {
 	
-	static String testFile = "C:\\Users\\Denis\\Dropbox\\projects\\ksetsm\\k3_iris\\iris.txt";
+	static String testFile = "iris0.txt";
 	
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws Exception {
 		//simulateKII();
 		//k3sim();
 		//layerSim();
 		long t1 = System.currentTimeMillis();
 		simulateK3();
+		//simulateKII();
 		System.out.println("time = " + (System.currentTimeMillis() - t1)/1000.0);
 	}
 	
-	private static void layerSim() throws FileNotFoundException {
-		ArrayList<double[]> data = readTable(testFile);
+	public static void simulateLayer() throws FileNotFoundException {
+		ArrayList<double[]> data = Utils.readTable(testFile);
 		int dataSize = data.get(0).length - 1;
 		K2Layer layer = new K2Layer(dataSize, Config.defaultW1, Config.defaultWLat1);
 		layer.setExternalStimulus(new double[]{1,1,1,1,1});
@@ -34,96 +35,23 @@ public class Main {
 		}
 	}
 	
-	private static void k3sim() throws FileNotFoundException {
-		long t1 = System.currentTimeMillis();
-		simulateK3();
-		System.out.println("time = " + (System.currentTimeMillis() - t1)/1000.0);
-		t1 = System.currentTimeMillis();
-		simulateK32();
-		System.out.println("time = " + (System.currentTimeMillis() - t1)/1000.0);
-	}
-
-	private static void simulateK32() throws FileNotFoundException {
-		ArrayList<double[]> data = readTable(testFile);
+	private static void simulateK3() throws IOException, Exception {
+		ArrayList<double[]> data = Utils.readTable(testFile);
 		int dataSize = data.get(0).length - 1;
+		System.out.println(dataSize);
 		KIII k3 = new KIII(dataSize);
-		double[] emptyArray = new double[dataSize];
-		double[] perturbed = new double[dataSize];
-		System.out.println("data size = " + dataSize + "    |    examples = " + data.size());
-		for (int i = 0; i < dataSize; ++i) {
-			perturbed[i] = Math.random() - 0.5;
-		}
+		double[][] output = k3.initialize();
+		//k3.train(data);
 		
-		int active = 50;
-		int inactive = 300;
+		//double[][] output = k3.run(data);
+		Utils.saveMatrix(output, "output.txt");
 		
+		k3.save("k3.jk3");
 		
-		k3.stepAsync(perturbed, 1);
-		k3.stepAsync(emptyArray, 499);
-		
-		for (int i = 0; i < data.size(); ++i) {
-			double[] stimulus = Arrays.copyOf(data.get(i), dataSize);
-			k3.stepAsync(stimulus, active);
-			k3.stepAsync(emptyArray, inactive);
-		}
-		
-	}
-	
-	private static void simulateK3() throws FileNotFoundException {
-		ArrayList<double[]> data = readTable(testFile);
-		int dataSize = data.get(0).length - 1;
-		KIII k3 = new KIII(dataSize);
-		double[] emptyArray = new double[dataSize];
-		double[] perturbed = new double[dataSize];
-		System.out.println("data size = " + dataSize + "    |    examples = " + data.size());
-		for (int i = 0; i < dataSize; ++i) {
-			perturbed[i] = Math.random() - 0.5;
-		}
-		
-		int active = 50;
-		int inactive = 300;
-		
-		
-		k3.step(perturbed, 1);
-		k3.step(emptyArray, 499);
-		
-		for (int i = 0; i < data.size(); ++i) {
-			double[] stimulus = Arrays.copyOf(data.get(i), dataSize);
-			k3.step(stimulus, active);
-			k3.step(emptyArray, inactive);
-		}
-		
-	}
-	
-	private static ArrayList<double[]> readTable(String filename) throws FileNotFoundException {
-		File f = new File(filename);
-		ArrayList<double[]> data = new ArrayList<>();
-		
-		Scanner fr = new Scanner(f);
-		while(fr.hasNextLine()) {
-			String line = fr.nextLine();
-			Scanner lr = new Scanner(line);
-			ArrayList<Double> dl = new ArrayList<>();
-
-			while (lr.hasNextDouble())
-				dl.add(lr.nextDouble());
-			
-			data.add(toArray(dl));
-			lr.close();
-		}
-		fr.close();
-		
-		return data;
-	}
-
-	private static double[] toArray(ArrayList<Double> dl) {
-		double[] dd = new double[dl.size()];
-		
-		for (int i = 0; i < dl.size(); ++i) {
-			dd[i] = dl.get(i);
-		}
-		
-		return dd;
+		//KIII k3async = new KIII(dataSize);
+		//k3async.initialize();
+		//k3async.trainAsync(data);
+		//k3async.runAsync(data);
 	}
 
 	public static void simulateKO() {
@@ -138,7 +66,7 @@ public class Main {
 		ko.setExternalStimulus(0);
 		for (int i = 0; i < 100; ++i) {
 			ko.solve();
-			System.out.print(" " + ko.getOutput(1));
+			System.out.print(", " + ko.getOutput(1));
 		}
 	}
 	
@@ -155,7 +83,7 @@ public class Main {
 		ki.setExternalStimulus(0);
 		for (int i = 0; i < 100; ++i) {
 			ki.solve();
-			System.out.print(" " + ki.getOutput(1));
+			System.out.print(", " + ki.getOutput(1));
 			Config.incTime();
 		}
 	}
@@ -168,14 +96,14 @@ public class Main {
 		KII k = new KII(0.1, 1.8, -1.0, -1.8);
 		
 		k.setExternalStimulus(1);
-		for (int i = 0; i < 1; ++i) {
+		for (int i = 0; i < 1000; ++i) {
 			k.solve();
 			System.out.print(" " + k.getOutput(1));
 			Config.incTime();
 		}
 		
 		k.setExternalStimulus(0);
-		for (int i = 0; i < 1200; ++i) {
+		for (int i = 0; i < 1000; ++i) {
 			k.solve();
 			System.out.print(" " + k.getOutput(1));
 			Config.incTime();

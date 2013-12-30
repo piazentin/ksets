@@ -2,7 +2,7 @@ package main.ksets.kernel;
 
 public class Config {
 	
-	public static int historySize = 300;
+	public static int historySize = 1000000;
 	public static int time = 0;
 	
 	// Duration in <solve> cicles of the "active" and "resting" periods of the network

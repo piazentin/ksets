@@ -1,12 +1,15 @@
 package main.ksets.kernel;
 
+import java.io.Serializable;
+
 /**
  * Can be used to create a connection who gets the output from the lower, inhibitory, K sets
  * @author Denis
  *
  */
-public class LowerOutputAdapter implements HasOutput {
+public class LowerOutputAdapter implements HasOutput, Serializable {
 
+	private static final long serialVersionUID = -1241949392405962193L;
 	private K2Layer origin;
 	
 	/**

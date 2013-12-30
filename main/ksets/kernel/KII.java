@@ -1,7 +1,10 @@
 package main.ksets.kernel;
 
-public class KII implements Kset, Runnable {
+import java.io.Serializable;
+
+public class KII implements Kset, Runnable, Serializable {
 	
+	private static final long serialVersionUID = -1646746114752724L;
 	private KO[] k = new KO[4];
 	
 	/**

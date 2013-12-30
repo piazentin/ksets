@@ -1,11 +1,15 @@
 package main.ksets.kernel;
 
+import java.io.Serializable;
+
 /**
  * Implements the connection between two K sets.
  * @author Denis Piazentin
  *
  */
-public class Connection {
+public class Connection implements Serializable {
+
+	private static final long serialVersionUID = 5366548013955684357L;
 	private HasOutput origin;
 	private double weight;
 	private int delay = 0;
