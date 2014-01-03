@@ -1,29 +1,22 @@
 package main.ksets.kernel;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Main {
 	
-	static String testFile = "iris0.txt";
+	static String testFile = "irisn.txt";
 	
 	public static void main(String[] args) throws Exception {
-		//simulateKII();
-		//k3sim();
-		//layerSim();
 		long t1 = System.currentTimeMillis();
 		simulateK3();
-		//simulateKII();
 		System.out.println("time = " + (System.currentTimeMillis() - t1)/1000.0);
 	}
 	
-	public static void simulateLayer() throws FileNotFoundException {
+	public static void simulateLayer() throws Exception {
 		ArrayList<double[]> data = Utils.readTable(testFile);
 		int dataSize = data.get(0).length - 1;
-		K2Layer layer = new K2Layer(dataSize, Config.defaultW1, Config.defaultWLat1);
+		K2Layer layer = new K2Layer(dataSize, Config.defaultW1, Config.defaultWLat1, K2Layer.WLat.FIXED);
 		layer.setExternalStimulus(new double[]{1,1,1,1,1});
 		layer.solve();
 		layer.setExternalStimulus(new double[]{0,0,0,0,0});
@@ -35,16 +28,18 @@ public class Main {
 		}
 	}
 	
-	private static void simulateK3() throws IOException, Exception {
+	private static void simulateK3() throws Exception {
 		ArrayList<double[]> data = Utils.readTable(testFile);
 		int dataSize = data.get(0).length - 1;
-		System.out.println(dataSize);
 		KIII k3 = new KIII(dataSize);
-		double[][] output = k3.initialize();
+		double[][][] output = k3.initialize();
 		//k3.train(data);
 		
-		//double[][] output = k3.run(data);
-		Utils.saveMatrix(output, "output.txt");
+		double[][] outputRun = k3.run(data);
+		Utils.saveMatrix(output[0], "output0.txt");
+		Utils.saveMatrix(output[1], "output1.txt");
+		Utils.saveMatrix(output[2], "output2.txt");
+		Utils.saveMatrix(outputRun, "output.txt");
 		
 		k3.save("k3.jk3");
 		

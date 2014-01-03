@@ -2,14 +2,14 @@ package main.ksets.kernel;
 
 public class Config {
 	
-	public static int historySize = 1000000;
+	public static int historySize = 10000;
 	public static int time = 0;
 	
 	// Duration in <solve> cicles of the "active" and "resting" periods of the network
-	public static int active = 300;
-	public static int rest	 = 200;
+	public static int active = 1200;
+	public static int rest	 = 1200;
 	
-	public static double alpha = 0.0125;
+	public static double alpha = 0.5;
 	
 	// Period of the activation that must be used for computing the training correlation
 	// Must be smaller than active and historySize

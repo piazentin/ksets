@@ -6,15 +6,23 @@ import java.io.Serializable;
 public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Serializable {
 
 	private static final long serialVersionUID = 5708993646173660914L;
+	
+	public static enum WLat { 
+		FIXED, 
+		RANDOM 
+	};
+	
 	private KII[] k;
 	private int size;
 	private Connection[][] latConnections;
 	private int id;
+	private WLat wLatType;
 	
 	private static final double alpha = Config.alpha;
 	
-	public K2Layer(int size, double wee, double wei, double wie, double wii, double wLat_ee, double wLat_ii) {
+	public K2Layer(int size, double wee, double wei, double wie, double wii, double wLat_ee, double wLat_ii, WLat type) {
 		this.size = size;
+		this.wLatType = type;
 		
 		k = new KII[size];
 		id = Config.getNextId();
@@ -24,20 +32,34 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 			k[i] = new KII(wee, wei, wie, wii);
 		}
 		
+		if (size > 1) {
+			wLat_ee = wLat_ee / (size - 1);
+			wLat_ii = wLat_ii / (size - 1);
+		}
+		
 		for (int i = 0; i < size - 1; ++i) {
-			for (int j = 1; j < size; ++j) {
-				if (i == j) continue; 
-				
-				latConnections[i][j] = k[i].connect(k[j], wLat_ee);
-				latConnections[j][i] = k[j].connect(k[i], wLat_ee);									
+			for (int j = i+1; j < size; ++j) {
+				double wLat = getLatWeight(wLat_ee);
+				latConnections[i][j] = k[i].connect(k[j], wLat);
+				latConnections[j][i] = k[j].connect(k[i], wLat);									
 				k[i].connectInhibitory(k[j], wLat_ii);
 				k[j].connectInhibitory(k[i], wLat_ii);
 			}
 		}
 	}
 	
-	public K2Layer(int size, double[] defaultW1, double[] defaultWLat1) {
-		this(size, defaultW1[0], defaultW1[1], defaultW1[2], defaultW1[3], defaultWLat1[0], defaultWLat1[1]);
+	public K2Layer(int size, double[] defaultW1, double[] defaultWLat1, WLat type) {
+		this(size, defaultW1[0], defaultW1[1], defaultW1[2], defaultW1[3], defaultWLat1[0], defaultWLat1[1], type);
+	}
+	
+	private double getLatWeight(double x) {
+		switch (wLatType) {
+		case FIXED:
+			return x;
+		case RANDOM:
+			return Math.abs(Math.random() * x);
+		}
+		return x;
 	}
 
 	public double[] getLayerOutput() {
