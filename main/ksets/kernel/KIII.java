@@ -21,6 +21,11 @@ public class KIII implements Serializable {
 	
 	private transient ThreadPoolExecutor pool;
 	
+	public static enum InterLayerConnectionType {
+		AVERAGE,
+		CONVERGE_DIVERGE
+	}
+	
 	/**
 	 * Create a new KIII with the default configurations from the old matlab implementation.
 	 * @param size
@@ -31,19 +36,27 @@ public class KIII implements Serializable {
 		
 		k3 = new K2Layer[3];
 		
-		k3[0] = new K2Layer(size, Config.defaultW1, Config.defaultWLat1, K2Layer.WLat.FIXED);
-		k3[1] = new K2Layer(size, Config.defaultW2, Config.defaultWLat2, K2Layer.WLat.FIXED);
-		k3[2] = new K2Layer(size, Config.defaultW3, Config.defaultWLat3, K2Layer.WLat.FIXED);
+		k3[0] = new K2Layer(size, Config.defaultW1, Config.defaultWLat1, K2Layer.WLat.USE_FIXED_WEIGHTS);
+		k3[1] = new K2Layer(size, Config.defaultW2, Config.defaultWLat2, K2Layer.WLat.USE_FIXED_WEIGHTS);
+		k3[2] = new K2Layer(size, Config.defaultW3, Config.defaultWLat3, K2Layer.WLat.USE_FIXED_WEIGHTS);
 		
-		k3[1].connect(k3[0], 0.3, -1);
-		k3[2].connect(k3[0], 0.5, -1);
+		// feedforward connection from layer 1 to layer 2
+		k3[1].connect(k3[0], 0.3 / k3[0].getSize(), -1, InterLayerConnectionType.CONVERGE_DIVERGE);
+		// feedforward connection from layer 1 to layer 3
+		k3[2].connect(k3[0], 0.5 / k3[0].getSize(), -1, InterLayerConnectionType.CONVERGE_DIVERGE); 
 		
-		k3[0].connect(k3[1], 0.5, -17);
-		k3[0].connectInhibitory(k3[1], 0.6, -25);
-		k3[2].connect(k3[1], 1, 1);
+		// excitatory feedback connection from layer 2 to layer 1
+		k3[0].connect(k3[1], 0.5 / k3[1].getSize(), -17, InterLayerConnectionType.AVERAGE);
+		// excitatory-to-inhibitory feedback connection from layer 2 to layer 1
+		k3[0].connectInhibitory(k3[1], 0.6 / k3[1].getSize(), -25, InterLayerConnectionType.AVERAGE);
+		// There is no feedforward connection from layer 2 to layer 3 in the original Matlab model
+		// and in many literature diagrams
+		// k3[2].connect(k3[1], 1, -1);
 		
-		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.5, 25);
-		k3[1].connectInhibitory(k3[2], 0.5, 25);
+		// inhibitory-to-inhibitory feedback connection from layer 3 to layer 1
+		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.5 / k3[2].getSize(), 25, InterLayerConnectionType.AVERAGE);
+		// excitatory-to-inhibitory feedback connection from layer 3 to layer 2
+		k3[1].connectInhibitory(k3[2], 0.5, 25, InterLayerConnectionType.AVERAGE);
 		
 		pool = new ThreadPoolExecutor(4, 10, 10, TimeUnit.NANOSECONDS, new PriorityBlockingQueue<Runnable>());	
 	}
@@ -58,8 +71,8 @@ public class KIII implements Serializable {
 			perturbed[i] = Math.random() - 0.5;
 		}
 		perturbed = new double[]{1,0.33,-0.33,-1};
-		this.step(perturbed, Config.active);
-		this.step(emptyArray, Config.rest);
+		this.step(perturbed, Config.active * 10);
+		this.step(emptyArray, Config.rest * 10);
 		
 		double[][][] outputs = new double[3][][];	
 		outputs[0] = k3[0].getActivation();

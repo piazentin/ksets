@@ -3,13 +3,13 @@ package main.ksets.kernel;
 import java.io.Serializable;
 
 
-public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Serializable {
+public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Serializable, Layer {
 
 	private static final long serialVersionUID = 5708993646173660914L;
 	
 	public static enum WLat { 
-		FIXED, 
-		RANDOM 
+		USE_FIXED_WEIGHTS, 
+		USE_RANDOM_WEIGHTS 
 	};
 	
 	private KII[] k;
@@ -32,11 +32,13 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 			k[i] = new KII(wee, wei, wie, wii);
 		}
 		
+		// Normalize the Weights in function of the layer size
 		if (size > 1) {
 			wLat_ee = wLat_ee / (size - 1);
 			wLat_ii = wLat_ii / (size - 1);
 		}
 		
+		// Creating lateral connections between KII-sets in the layer
 		for (int i = 0; i < size - 1; ++i) {
 			for (int j = i+1; j < size; ++j) {
 				double wLat = getLatWeight(wLat_ee);
@@ -52,11 +54,19 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 		this(size, defaultW1[0], defaultW1[1], defaultW1[2], defaultW1[3], defaultWLat1[0], defaultWLat1[1], type);
 	}
 	
+	public int getSize() {
+		return this.size;
+	}
+	
+	public KII getUnit(int index) {
+		return this.k[index];
+	}
+	
 	private double getLatWeight(double x) {
 		switch (wLatType) {
-		case FIXED:
+		case USE_FIXED_WEIGHTS:
 			return x;
-		case RANDOM:
+		case USE_RANDOM_WEIGHTS:
 			return Math.abs(Math.random() * x);
 		}
 		return x;
@@ -122,24 +132,60 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 		}
 	}
 	
-	public void connect(HasOutput origin, double weight, int delay) {
-		for (int i = 0; i < this.k.length; ++i) {
-			k[i].connect(origin, weight, delay);
+	public void connect(HasOutput origin, double weight, int delay, KIII.InterLayerConnectionType connectionType) {
+		switch (connectionType) {
+		case CONVERGE_DIVERGE:
+			if (origin instanceof Layer) {
+				Layer layer = (Layer) origin;
+				connectConvergeDiverge(layer, weight, delay);
+			} else {
+				throw new RuntimeException("Layer Object is required for CONVERGE_DIVERGE connection");
+			}
+			break;
+		case AVERAGE:	// Defaults to Average Method
+		default:
+			connectAverage(origin, weight, delay);
+			break;
 		}
 	}
 	
-	public void connect(HasOutput origin, double weight) {
-		connect(origin, weight, 0);
+	private void connectConvergeDiverge(Layer layer, double weight, int delay) {
+		int nCon = Math.max(layer.getSize(), this.getSize());
+		double wNorm = weight / nCon;
+		double ratio = layer.getSize() / this.getSize();
+		// TODO properly test this
+		
+		for (int i = 1; i <= nCon; i++) {
+			if (ratio >= 1) {
+				// cycling between output layer
+				int inputIndex = ((int) Math.ceil(i / ratio)) - 1;
+				this.k[inputIndex].connect(layer.getUnit(i - 1), wNorm, delay);
+			} else {
+				// cycling between input layer
+				int outputIndex = ((int) Math.ceil(i * ratio)) - 1;
+				this.k[i - 1].connect(layer.getUnit(outputIndex), wNorm, delay);
+			}
+		}
+	}
+
+	private void connectAverage(HasOutput origin, double weight, int delay) {
+		for (int i = 0; i < this.k.length; ++i) {
+			k[i].connect(origin, weight / this.size, delay);
+		}
 	}
 	
-	public void connectInhibitory(HasOutput origin, double weight, int delay) {
+	public void connect(HasOutput origin, double weight, KIII.InterLayerConnectionType connectionType) {
+		connect(origin, weight, 0, connectionType);
+	}
+	
+	public void connectInhibitory(HasOutput origin, double weight, int delay, KIII.InterLayerConnectionType connectionType) {
 		for (int i = 0; i < this.k.length; ++i) {
 			k[i].connectInhibitory(origin, weight, delay);
 		}
 	}
 
-	public void connectInhibitory(HasOutput origin, double weight) {
-		connectInhibitory(origin, weight, 0);
+	public void connectInhibitory(HasOutput origin, double weight, KIII.InterLayerConnectionType connectionType) {
+		connectInhibitory(origin, weight, 0, connectionType);
 	}
 	
 	public void solve() {

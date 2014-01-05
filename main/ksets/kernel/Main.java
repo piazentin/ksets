@@ -16,7 +16,7 @@ public class Main {
 	public static void simulateLayer() throws Exception {
 		ArrayList<double[]> data = Utils.readTable(testFile);
 		int dataSize = data.get(0).length - 1;
-		K2Layer layer = new K2Layer(dataSize, Config.defaultW1, Config.defaultWLat1, K2Layer.WLat.FIXED);
+		K2Layer layer = new K2Layer(dataSize, Config.defaultW1, Config.defaultWLat1, K2Layer.WLat.USE_FIXED_WEIGHTS);
 		layer.setExternalStimulus(new double[]{1,1,1,1,1});
 		layer.solve();
 		layer.setExternalStimulus(new double[]{0,0,0,0,0});
