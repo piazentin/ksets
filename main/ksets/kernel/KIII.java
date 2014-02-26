@@ -18,6 +18,7 @@ public class KIII implements Serializable {
 	private K2Layer[] k3;
 	private int inputSize;
 	private double[] emptyArray; // Empty array used during the resting period
+	private int outputLayer = 2;
 	
 	private transient ThreadPoolExecutor pool;
 	
@@ -41,20 +42,20 @@ public class KIII implements Serializable {
 		k3[2] = new K2Layer(size, Config.defaultW3, Config.defaultWLat3, K2Layer.WLat.USE_FIXED_WEIGHTS);
 		
 		// feedforward connection from layer 1 to layer 2
-		k3[1].connect(k3[0], 0.3 / k3[0].getSize(), -1, InterLayerConnectionType.CONVERGE_DIVERGE);
+		k3[1].connect(k3[0], 0.3, -1, InterLayerConnectionType.CONVERGE_DIVERGE);
 		// feedforward connection from layer 1 to layer 3
-		k3[2].connect(k3[0], 0.5 / k3[0].getSize(), -1, InterLayerConnectionType.CONVERGE_DIVERGE); 
+		k3[2].connect(k3[0], 0.5, -1, InterLayerConnectionType.CONVERGE_DIVERGE); 
 		
 		// excitatory feedback connection from layer 2 to layer 1
-		k3[0].connect(k3[1], 0.5 / k3[1].getSize(), -17, InterLayerConnectionType.AVERAGE);
+		k3[0].connect(k3[1], 0.5, -17, InterLayerConnectionType.AVERAGE);
 		// excitatory-to-inhibitory feedback connection from layer 2 to layer 1
-		k3[0].connectInhibitory(k3[1], 0.6 / k3[1].getSize(), -25, InterLayerConnectionType.AVERAGE);
+		k3[0].connectInhibitory(k3[1], 0.6, -25, InterLayerConnectionType.AVERAGE);
 		// There is no feedforward connection from layer 2 to layer 3 in the original Matlab model
 		// and in many literature diagrams
 		// k3[2].connect(k3[1], 1, -1);
 		
 		// inhibitory-to-inhibitory feedback connection from layer 3 to layer 1
-		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.5 / k3[2].getSize(), 25, InterLayerConnectionType.AVERAGE);
+		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.5, 25, InterLayerConnectionType.AVERAGE);
 		// excitatory-to-inhibitory feedback connection from layer 3 to layer 2
 		k3[1].connectInhibitory(k3[2], 0.5, 25, InterLayerConnectionType.AVERAGE);
 		
@@ -64,21 +65,37 @@ public class KIII implements Serializable {
 	/**
 	 * Initialize KIII-set with a perturbed input to move it from zero steady state and let it stabilize
 	 */
-	public double[][][] initialize() {
+	public void initialize() {
 		double[] perturbed = new double[inputSize];
 		
 		for (int i = 0; i < inputSize; ++i) {
 			perturbed[i] = Math.random() - 0.5;
 		}
 		perturbed = new double[]{1,0.33,-0.33,-1};
-		this.step(perturbed, Config.active * 10);
-		this.step(emptyArray, Config.rest * 10);
+		this.step(perturbed, 1);
+		this.step(emptyArray, Config.rest);
+	}
+	
+	public double[][][] getHistory() {
+		double[][][] history = new double[k3.length][][];
 		
-		double[][][] outputs = new double[3][][];	
-		outputs[0] = k3[0].getActivation();
-		outputs[1] = k3[1].getActivation();
-		outputs[2] = k3[2].getActivation();
-		return outputs;
+		for (int i = 0; i < k3.length; i++) {
+			history[i] = k3[i].getHistory();
+		}
+		
+		return history;
+	}
+	
+	public int getOutputLayer() {
+		return this.outputLayer;
+	}
+	
+	public void setOutputLayer(int outputLayer) {
+		if (outputLayer < 0 || outputLayer >= k3.length) {
+			throw new RuntimeException("outputLayer must be a number between 0 and number of KIII layers - 1");
+		}
+		
+		this.outputLayer = outputLayer;
 	}
 	
 	public void setExternalStimulus(double[] stimulus) {
@@ -90,7 +107,7 @@ public class KIII implements Serializable {
 	}
 	
 	public double[] getFullOutput(int delay) {
-		return k3[2].getLayerOutput(0);
+		return k3[2].getLayerOutput(this.outputLayer);
 	}
 	
 	public void solve() {
@@ -150,7 +167,24 @@ public class KIII implements Serializable {
 			this.step(stimulus, Config.active);
 			// Calculate the output as the standard deviation of the activation history of each top KII node
 			
-			outputs[i] = k3[2].getActivationDeviation();
+			outputs[i] = k3[2].getActivationPower();
+			// Put the network to rest, to prepare it for the next stimulus
+			this.step(emptyArray, Config.rest);
+		}
+		
+		return outputs;
+	}
+	
+	public double[][][] runAndGetActivation(ArrayList<double[]> data) {
+		double[][][] outputs = new double[data.size()][][];
+		
+		for (int i = 0; i < data.size(); ++i) {
+			double[] stimulus = Arrays.copyOf(data.get(i), data.get(i).length);
+			// Stimulate the network (equivalent to an sniff)
+			this.step(stimulus, Config.active);
+			// Calculate the output as the standard deviation of the activation history of each top KII node
+			
+			outputs[i] = k3[2].getActivation();
 			// Put the network to rest, to prepare it for the next stimulus
 			this.step(emptyArray, Config.rest);
 		}

@@ -13,7 +13,7 @@ public class KO implements Kset, Runnable, Serializable {
 	private double[] activation = new double[Config.historySize];
 	private double derivative;
 	
-	private List<Connection> connections = new LinkedList<>();
+	private List<Connection> connections = new LinkedList<Connection>();
 	private double externalStimulus = 0.0;
 	private K0Solver koSolver = new K0Solver();
 	
@@ -96,11 +96,16 @@ public class KO implements Kset, Runnable, Serializable {
 		return q * (1 - Math.exp(-(Math.exp(x)-1)/q));
 	}
 	
-	/**
-	 * 
-	 */
+	public double[] getHistory() {
+		return getActivation(Config.historySize - 1);
+	}
+	
 	public double[] getActivation() {
-		int from = getTime(-Config.stableActivation);
+		return getActivation(Config.stableActivation);
+	}
+	
+	public double[] getActivation(int time) {
+		int from = getTime(-time);
 		int to = getTime();
 		
 		if (to > from) {

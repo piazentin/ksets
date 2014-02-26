@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 public class Main {
 	
-	static String testFile = "irisn.txt";
+	static String testFile = "C:\\Users\\Denis\\Dropbox\\projects\\ksets\\irisn.txt";
 	
 	public static void main(String[] args) throws Exception {
 		long t1 = System.currentTimeMillis();
@@ -28,25 +28,19 @@ public class Main {
 		}
 	}
 	
-	private static void simulateK3() throws Exception {
+	public static double[][][] simulateK3() throws Exception {
 		ArrayList<double[]> data = Utils.readTable(testFile);
 		int dataSize = data.get(0).length - 1;
 		KIII k3 = new KIII(dataSize);
-		double[][][] output = k3.initialize();
-		//k3.train(data);
-		
-		double[][] outputRun = k3.run(data);
+		k3.initialize();
+		double[][][] output = k3.getHistory();
+
+		double[][][] outputRun = k3.runAndGetActivation(data);
 		Utils.saveMatrix(output[0], "output0.txt");
 		Utils.saveMatrix(output[1], "output1.txt");
 		Utils.saveMatrix(output[2], "output2.txt");
-		Utils.saveMatrix(outputRun, "output.txt");
-		
-		k3.save("k3.jk3");
-		
-		//KIII k3async = new KIII(dataSize);
-		//k3async.initialize();
-		//k3async.trainAsync(data);
-		//k3async.runAsync(data);
+
+		return outputRun;
 	}
 
 	public static void simulateKO() {

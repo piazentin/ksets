@@ -6,8 +6,8 @@ public class Config {
 	public static int time = 0;
 	
 	// Duration in <solve> cicles of the "active" and "resting" periods of the network
-	public static int active = 1200;
-	public static int rest	 = 1200;
+	public static int active = 600;
+	public static int rest	 = 300;
 	
 	public static double alpha = 0.5;
 	

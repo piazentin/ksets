@@ -145,11 +145,23 @@ public class KII implements Kset, Runnable, Serializable {
 		}
 	}
 
+	public double[] getHistory() {
+		return k[0].getHistory();
+	}
+	
 	/**
 	 * Gets the history of activation from KII-set, from its top KO.
 	 * @return a double array with the activation history
 	 */
 	public double[] getActivation() {
 		return k[0].getActivation();
+	}
+	
+	public HasOutput getExcitatoryUnit() {
+		return this.k[0];
+	}
+	
+	public HasOutput getInhibitoryUnit() {
+		return this.k[3];
 	}
 }

@@ -12,6 +12,16 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 		USE_RANDOM_WEIGHTS 
 	};
 	
+	public static enum From { 
+		EXCITATORY, 
+		INHIBITORY 
+	};
+	
+	public static enum To { 
+		EXCITATORY, 
+		INHIBITORY 
+	};
+	
 	private KII[] k;
 	private int size;
 	private Connection[][] latConnections;
@@ -137,7 +147,8 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 		case CONVERGE_DIVERGE:
 			if (origin instanceof Layer) {
 				Layer layer = (Layer) origin;
-				connectConvergeDiverge(layer, weight, delay);
+				From from = origin instanceof LowerOutputAdapter ? From.INHIBITORY : From.EXCITATORY;
+				connectConvergeDiverge(layer, weight, delay, from, To.EXCITATORY);
 			} else {
 				throw new RuntimeException("Layer Object is required for CONVERGE_DIVERGE connection");
 			}
@@ -149,21 +160,44 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 		}
 	}
 	
-	private void connectConvergeDiverge(Layer layer, double weight, int delay) {
+	private void connectConvergeDiverge(Layer layer, double weight, int delay, K2Layer.From fromType, K2Layer.To toType) {
 		int nCon = Math.max(layer.getSize(), this.getSize());
 		double wNorm = weight / nCon;
 		double ratio = layer.getSize() / this.getSize();
 		// TODO properly test this
 		
 		for (int i = 1; i <= nCon; i++) {
+			int idxTo = -1;
+			HasOutput output = null;
+			
 			if (ratio >= 1) {
 				// cycling between output layer
 				int inputIndex = ((int) Math.ceil(i / ratio)) - 1;
-				this.k[inputIndex].connect(layer.getUnit(i - 1), wNorm, delay);
+				
+				if (fromType == K2Layer.From.INHIBITORY) {
+					output = ((KII) layer.getUnit(i - 1)).getInhibitoryUnit();
+				} else {
+					output = layer.getUnit(i - 1);
+				}
+				
+				idxTo = inputIndex;
 			} else {
 				// cycling between input layer
 				int outputIndex = ((int) Math.ceil(i * ratio)) - 1;
-				this.k[i - 1].connect(layer.getUnit(outputIndex), wNorm, delay);
+				
+				if (fromType == K2Layer.From.INHIBITORY) {
+					output = ((KII) layer.getUnit(outputIndex)).getInhibitoryUnit();
+				} else {
+					output = layer.getUnit(outputIndex);
+				}
+				
+				idxTo = i - 1;
+			}
+			
+			if (toType == To.EXCITATORY) {
+				this.k[idxTo].connect(output, wNorm, delay);
+			} else {
+				this.k[idxTo].connectInhibitory(output, wNorm, delay);
 			}
 		}
 	}
@@ -179,8 +213,22 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 	}
 	
 	public void connectInhibitory(HasOutput origin, double weight, int delay, KIII.InterLayerConnectionType connectionType) {
-		for (int i = 0; i < this.k.length; ++i) {
-			k[i].connectInhibitory(origin, weight, delay);
+		switch (connectionType) {
+		case CONVERGE_DIVERGE:
+			if (origin instanceof Layer) {
+				Layer layer = (Layer) origin;
+				From from = origin instanceof LowerOutputAdapter ? From.INHIBITORY : From.EXCITATORY;
+				connectConvergeDiverge(layer, weight, delay, from, To.INHIBITORY);
+			} else {
+				throw new RuntimeException("Layer Object is required for CONVERGE_DIVERGE connection");
+			}
+			break;
+		case AVERAGE:	// Defaults to Average Method
+		default:
+			for (int i = 0; i < this.k.length; ++i) {
+				k[i].connectInhibitory(origin, weight, delay);
+			}
+			break;
 		}
 	}
 
@@ -215,11 +263,22 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 				if (i == j) continue;
 				
 				deltaW = alpha * (std[i] - meanStd) * (std[j] - meanStd);
+				
 				if (deltaW > 0) {
 					latConnections[i][j].setWeight(latConnections[i][j].getWeight() + deltaW);
 				}	
 			}
 		}
+	}
+	
+	public double[][] getHistory() {
+		double[][] history = new double[size][];
+		
+		for (int i = 0; i < this.size; ++i) {
+			history[i] = k[i].getHistory();
+		}
+		
+		return history;
 	}
 	
 	public double[][] getActivation() {
@@ -240,6 +299,25 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 		}
 		
 		return std;
+	}
+	
+	public double[] getActivationPower() {
+		double[] std = new double[k.length];
+		
+		for (int i = 0; i < this.size; ++i) {
+			std[i] = powerSum(k[i].getActivation());
+		}
+		
+		return std;
+	}
+	
+	private double powerSum(double[] x) {
+		double sum = 0;
+		for (int i = 0; i < x.length; i++) {
+			sum = sum + Math.pow(x[i], 2);
+		}
+
+		return Math.sqrt(sum);
 	}
 	
 	private double stardardDeviation(double[] x) {
