@@ -15,16 +15,22 @@ import java.util.concurrent.TimeUnit;
 public class KIII implements Serializable {
 
 	private static final long serialVersionUID = -1945033929994699028L;
-	private K2Layer[] k3;
+	public K2Layer[] k3;
 	private int inputSize;
 	private double[] emptyArray; // Empty array used during the resting period
 	private int outputLayer = 2;
+	private OutputMethod outputMethod;
 	
 	private transient ThreadPoolExecutor pool;
 	
 	public static enum InterLayerConnectionType {
 		AVERAGE,
 		CONVERGE_DIVERGE
+	}
+	
+	public static enum OutputMethod {
+		STANDARD_DEVIATION,
+		SHORT_TERM_POWER
 	}
 	
 	/**
@@ -38,26 +44,33 @@ public class KIII implements Serializable {
 		k3 = new K2Layer[3];
 		
 		k3[0] = new K2Layer(size, Config.defaultW1, Config.defaultWLat1, K2Layer.WLat.USE_FIXED_WEIGHTS);
-		k3[1] = new K2Layer(size, Config.defaultW2, Config.defaultWLat2, K2Layer.WLat.USE_FIXED_WEIGHTS);
-		k3[2] = new K2Layer(size, Config.defaultW3, Config.defaultWLat3, K2Layer.WLat.USE_FIXED_WEIGHTS);
+		k3[1] = new K2Layer(1, Config.defaultW2, Config.defaultWLat2, K2Layer.WLat.USE_FIXED_WEIGHTS);
+		k3[2] = new K2Layer(1, Config.defaultW3, Config.defaultWLat3, K2Layer.WLat.USE_FIXED_WEIGHTS);
+		
+		// Configure noise sources
+		k3[0].injectNoise(0.0, 0.07);
+		k3[1].injectNoise(0.2, 0.7);		
 		
 		// feedforward connection from layer 1 to layer 2
 		k3[1].connect(k3[0], 0.3, -1, InterLayerConnectionType.CONVERGE_DIVERGE);
 		// feedforward connection from layer 1 to layer 3
 		k3[2].connect(k3[0], 0.5, -1, InterLayerConnectionType.CONVERGE_DIVERGE); 
-		
+
 		// excitatory feedback connection from layer 2 to layer 1
 		k3[0].connect(k3[1], 0.5, -17, InterLayerConnectionType.AVERAGE);
 		// excitatory-to-inhibitory feedback connection from layer 2 to layer 1
 		k3[0].connectInhibitory(k3[1], 0.6, -25, InterLayerConnectionType.AVERAGE);
 		// There is no feedforward connection from layer 2 to layer 3 in the original Matlab model
 		// and in many literature diagrams
-		// k3[2].connect(k3[1], 1, -1);
+		// k3[2].connect(k3[1], 0, 0);
 		
 		// inhibitory-to-inhibitory feedback connection from layer 3 to layer 1
-		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.5, 25, InterLayerConnectionType.AVERAGE);
+		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.5, -25, InterLayerConnectionType.AVERAGE);
 		// excitatory-to-inhibitory feedback connection from layer 3 to layer 2
-		k3[1].connectInhibitory(k3[2], 0.5, 25, InterLayerConnectionType.AVERAGE);
+		k3[1].connectInhibitory(k3[2], 0.5, -25, InterLayerConnectionType.AVERAGE);
+		
+		this.outputMethod = OutputMethod.STANDARD_DEVIATION;
+		this.setOutputLayer(0);
 		
 		pool = new ThreadPoolExecutor(4, 10, 10, TimeUnit.NANOSECONDS, new PriorityBlockingQueue<Runnable>());	
 	}
@@ -71,7 +84,7 @@ public class KIII implements Serializable {
 		for (int i = 0; i < inputSize; ++i) {
 			perturbed[i] = Math.random() - 0.5;
 		}
-		perturbed = new double[]{1,0.33,-0.33,-1};
+		
 		this.step(perturbed, 1);
 		this.step(emptyArray, Config.rest);
 	}
@@ -108,6 +121,16 @@ public class KIII implements Serializable {
 	
 	public double[] getFullOutput(int delay) {
 		return k3[2].getLayerOutput(this.outputLayer);
+	}
+	
+	public double[] getOutput() {
+		switch (outputMethod) {
+		case SHORT_TERM_POWER:
+			return k3[this.outputLayer].getActivationPower();
+		case STANDARD_DEVIATION:
+		default:
+			return k3[this.outputLayer].getActivationDeviation();
+		}
 	}
 	
 	public void solve() {
@@ -167,7 +190,7 @@ public class KIII implements Serializable {
 			this.step(stimulus, Config.active);
 			// Calculate the output as the standard deviation of the activation history of each top KII node
 			
-			outputs[i] = k3[2].getActivationPower();
+			outputs[i] = this.getOutput();
 			// Put the network to rest, to prepare it for the next stimulus
 			this.step(emptyArray, Config.rest);
 		}
@@ -184,7 +207,7 @@ public class KIII implements Serializable {
 			this.step(stimulus, Config.active);
 			// Calculate the output as the standard deviation of the activation history of each top KII node
 			
-			outputs[i] = k3[2].getActivation();
+			outputs[i] = k3[outputLayer].getActivation();
 			// Put the network to rest, to prepare it for the next stimulus
 			this.step(emptyArray, Config.rest);
 		}
@@ -199,8 +222,8 @@ public class KIII implements Serializable {
 			// Stimulate the network (equivalent to an sniff)
 			this.stepAsync(stimulus, Config.active);
 			// Calculate the output as the standard deviation of the activation history of each top KII node
-			outputs[i] = k3[2].getActivationDeviation();			
-			// Put the network to rest, to prepare it for the next stimulus
+			outputs[i] = this.getOutput();			
+			// Put the network to rest, and prepare for the next stimulus
 			this.stepAsync(emptyArray, Config.rest);
 		}
 	}

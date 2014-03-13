@@ -5,7 +5,7 @@ public class KI implements Kset {
 	/**
 	 * A basic KI is made of two connected KO
 	 */
-	private KO[] k = new KO[2];
+	public KO[] k = new KO[2];
 
 	/**
 	 * Create a KI with the defined connection weights
@@ -49,6 +49,14 @@ public class KI implements Kset {
 		for (int i = 0; i < k.length; i++) {
 			k[i].solve();
 		}
+	}
+	
+	public double[] getHistory() {
+		return k[0].getHistory();
+	}
+	
+	public double[] getHistory(int kIndex) {
+		return k[kIndex].getHistory();
 	}
 	
 	/**

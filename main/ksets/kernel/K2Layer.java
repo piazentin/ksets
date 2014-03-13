@@ -27,6 +27,8 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 	private Connection[][] latConnections;
 	private int id;
 	private WLat wLatType;
+	private boolean injectNoise;
+	private NoiseGenerator noise;
 	
 	private static final double alpha = Config.alpha;
 	
@@ -62,6 +64,11 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 	
 	public K2Layer(int size, double[] defaultW1, double[] defaultWLat1, WLat type) {
 		this(size, defaultW1[0], defaultW1[1], defaultW1[2], defaultW1[3], defaultWLat1[0], defaultWLat1[1], type);
+	}
+	
+	public void injectNoise(double mean, double standardDeviation) {
+		this.injectNoise = true;
+		this.noise = new NoiseGenerator(mean, standardDeviation);
 	}
 	
 	public int getSize() {
@@ -119,7 +126,7 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 			sum += this.k[i].getOutput(t);
 		}
 		
-		return sum/this.k.length;
+		return sum;
 	}
 	
 	public double getInhibitoryOutput() {
@@ -133,11 +140,12 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 			sum += this.k[i].getInhibitoryOutput(t);
 		}
 		
-		return sum/this.k.length;
+		return sum;
 	}
 	
-	public void setExternalStimulus(double[] stimulus) {
+	public void setExternalStimulus(double[] stimulus) {		
 		for (int i = 0; i < this.k.length; ++i) {
+			stimulus[i] += this.injectNoise ? noise.get() : 0; 
 			k[i].setExternalStimulus(stimulus[i]);
 		}
 	}
@@ -226,7 +234,7 @@ public class K2Layer implements HasOutput, Runnable, Comparable<Object>, Seriali
 		case AVERAGE:	// Defaults to Average Method
 		default:
 			for (int i = 0; i < this.k.length; ++i) {
-				k[i].connectInhibitory(origin, weight, delay);
+				k[i].connectInhibitory(origin, weight / this.size, delay);
 			}
 			break;
 		}

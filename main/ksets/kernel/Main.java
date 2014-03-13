@@ -9,7 +9,7 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 		long t1 = System.currentTimeMillis();
-		simulateK3();
+		//simulateK3();
 		System.out.println("time = " + (System.currentTimeMillis() - t1)/1000.0);
 	}
 	
@@ -78,14 +78,14 @@ public class Main {
 	}
 	
 	public static void simulateKII() {
-		//KII k = new KII(1.8, 1.0, -2.0, -0.8);
+		KII k = new KII(1.8, 1.0, -2.0, -0.8);
 		//KII k = new KII(1.6, 1.6, -1.5, -2.0);
 		//KII k = new KII(1.6, 1.9, -0.2, -1.0);
 		//KII k = new KII(2, 1.5, -2.0, -1.0);
-		KII k = new KII(0.1, 1.8, -1.0, -1.8);
+		//KII k = new KII(0.1, 1.8, -1.0, -1.8);
 		
 		k.setExternalStimulus(1);
-		for (int i = 0; i < 1000; ++i) {
+		for (int i = 0; i < 100; ++i) {
 			k.solve();
 			System.out.print(" " + k.getOutput(1));
 			Config.incTime();

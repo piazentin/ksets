@@ -7,7 +7,7 @@ public class Config {
 	
 	// Duration in <solve> cicles of the "active" and "resting" periods of the network
 	public static int active = 600;
-	public static int rest	 = 300;
+	public static int rest	 = 400;
 	
 	public static double alpha = 0.5;
 	
@@ -19,7 +19,7 @@ public class Config {
 	
 	public static final double a = 0.22;
 	public static final double b = 0.72;
-	public static final double h = 0.5;
+	public static final double h = 0.5; // timestep for runge-kutta
 	
 	public static final double[] defaultW1 = {1.8, 1.0, -2.0, -0.8};
 	public static final double[] defaultW2 = {1.6, 1.6, -1.5, -2.0};

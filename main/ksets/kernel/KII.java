@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class KII implements Kset, Runnable, Serializable {
 	
 	private static final long serialVersionUID = -1646746114752724L;
-	private KO[] k = new KO[4];
+	public KO[] k = new KO[4];
 	
 	/**
 	 * Create a KII set with random connection weights
@@ -147,6 +147,10 @@ public class KII implements Kset, Runnable, Serializable {
 
 	public double[] getHistory() {
 		return k[0].getHistory();
+	}
+	
+	public double[] getHistory(int kIndex) {
+		return k[kIndex].getHistory();
 	}
 	
 	/**
