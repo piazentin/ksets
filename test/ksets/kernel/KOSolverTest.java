@@ -1,7 +1,7 @@
 package test.ksets.kernel;
 
 import static org.junit.Assert.*;
-import main.ksets.kernel.K0Solver;
+import main.ksets.kernel.ODESolver;
 
 
 import org.junit.Test;
@@ -10,7 +10,7 @@ public class KOSolverTest {
 
 	@Test
 	public void testSolve() {
-		K0Solver kSolver = new K0Solver();
+		ODESolver kSolver = new ODESolver();
 		
 		double[] actuals = kSolver.solve(1, 1, 1);
 		assertArrayEquals(new double[]{1.3962, 0.6106}, actuals, 4);

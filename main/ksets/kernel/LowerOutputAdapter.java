@@ -10,13 +10,13 @@ import java.io.Serializable;
 public class LowerOutputAdapter implements HasOutput, Serializable {
 
 	private static final long serialVersionUID = -1241949392405962193L;
-	private K2Layer origin;
+	private KIILayer origin;
 	
 	/**
 	 * Creates an adapter for the kset
 	 * @param kset
 	 */
-	public LowerOutputAdapter(K2Layer kset) {
+	public LowerOutputAdapter(KIILayer kset) {
 		this.origin = kset; 
 	}
 	

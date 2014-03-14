@@ -15,7 +15,7 @@ public class KO implements Kset, Runnable, Serializable {
 	
 	private List<Connection> connections = new LinkedList<Connection>();
 	private double externalStimulus = 0.0;
-	private K0Solver koSolver = new K0Solver();
+	private ODESolver koSolver = new ODESolver();
 	
 	static final double q = Config.q;
 	

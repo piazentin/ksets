@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 public class Main {
 	
-	static String testFile = "C:\\Users\\Denis\\Dropbox\\projects\\ksets\\irisn.txt";
+	static String testFile = "irisn.txt";
 	
 	public static void main(String[] args) throws Exception {
 		long t1 = System.currentTimeMillis();
@@ -16,7 +16,7 @@ public class Main {
 	public static void simulateLayer() throws Exception {
 		ArrayList<double[]> data = Utils.readTable(testFile);
 		int dataSize = data.get(0).length - 1;
-		K2Layer layer = new K2Layer(dataSize, Config.defaultW1, Config.defaultWLat1, K2Layer.WLat.USE_FIXED_WEIGHTS);
+		KIILayer layer = new KIILayer(dataSize, Config.defaultW1, Config.defaultWLat1, KIILayer.WLat.USE_FIXED_WEIGHTS);
 		layer.setExternalStimulus(new double[]{1,1,1,1,1});
 		layer.solve();
 		layer.setExternalStimulus(new double[]{0,0,0,0,0});
@@ -35,7 +35,7 @@ public class Main {
 		k3.initialize();
 		double[][][] output = k3.getHistory();
 
-		double[][][] outputRun = k3.runAndGetActivation(data);
+		double[][][] outputRun = k3.runAndGetActivation(Utils.toMatrix(data));
 		Utils.saveMatrix(output[0], "output0.txt");
 		Utils.saveMatrix(output[1], "output1.txt");
 		Utils.saveMatrix(output[2], "output2.txt");

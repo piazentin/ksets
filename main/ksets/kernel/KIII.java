@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -15,10 +14,10 @@ import java.util.concurrent.TimeUnit;
 public class KIII implements Serializable {
 
 	private static final long serialVersionUID = -1945033929994699028L;
-	public K2Layer[] k3;
+	public KIILayer[] k3;
 	private int inputSize;
 	private double[] emptyArray; // Empty array used during the resting period
-	private int outputLayer = 2;
+	private int outputLayer;
 	private OutputMethod outputMethod;
 	
 	private transient ThreadPoolExecutor pool;
@@ -41,11 +40,11 @@ public class KIII implements Serializable {
 		this.inputSize = size;
 		this.emptyArray = new double[inputSize];
 		
-		k3 = new K2Layer[3];
+		k3 = new KIILayer[3];
 		
-		k3[0] = new K2Layer(size, Config.defaultW1, Config.defaultWLat1, K2Layer.WLat.USE_FIXED_WEIGHTS);
-		k3[1] = new K2Layer(1, Config.defaultW2, Config.defaultWLat2, K2Layer.WLat.USE_FIXED_WEIGHTS);
-		k3[2] = new K2Layer(1, Config.defaultW3, Config.defaultWLat3, K2Layer.WLat.USE_FIXED_WEIGHTS);
+		k3[0] = new KIILayer(size, Config.defaultW1, Config.defaultWLat1, KIILayer.WLat.USE_FIXED_WEIGHTS);
+		k3[1] = new KIILayer(1, Config.defaultW2, Config.defaultWLat2, KIILayer.WLat.USE_FIXED_WEIGHTS);
+		k3[2] = new KIILayer(1, Config.defaultW3, Config.defaultWLat3, KIILayer.WLat.USE_FIXED_WEIGHTS);
 		
 		// Configure noise sources
 		k3[0].injectNoise(0.0, 0.07);
@@ -120,7 +119,7 @@ public class KIII implements Serializable {
 	}
 	
 	public double[] getFullOutput(int delay) {
-		return k3[2].getLayerOutput(this.outputLayer);
+		return k3[outputLayer].getLayerOutput(this.outputLayer);
 	}
 	
 	public double[] getOutput() {
@@ -131,6 +130,10 @@ public class KIII implements Serializable {
 		default:
 			return k3[this.outputLayer].getActivationDeviation();
 		}
+	}
+	
+	public double[] getWeights(int layer) {
+		return k3[layer].getWeights();
 	}
 	
 	public void solve() {
@@ -163,29 +166,29 @@ public class KIII implements Serializable {
 		}
 	}
 
-	public void train(ArrayList<double[]> data) {
-		for (int i = 0; i < data.size(); ++i) {
-			double[] stimulus = Arrays.copyOf(data.get(i), data.get(i).length);
+	public void train(double[][] data) {
+		for (int i = 0; i < data.length; ++i) {
+			double[] stimulus = Arrays.copyOf(data[i], data[i].length);
 			this.step(stimulus, Config.active);
-			k3[2].train();
+			k3[outputLayer].train();
 			this.step(emptyArray, Config.rest);
 		}
 	}
 	
-	public void trainAsync(ArrayList<double[]> data) {
-		for (int i = 0; i < data.size(); ++i) {
-			double[] stimulus = Arrays.copyOf(data.get(i), data.get(i).length);
+	public void trainAsync(double[][] data) {
+		for (int i = 0; i < data.length; ++i) {
+			double[] stimulus = Arrays.copyOf(data[i], data[i].length);
 			this.stepAsync(stimulus, Config.active);
-			k3[2].train();
+			k3[outputLayer].train();
 			this.stepAsync(emptyArray, Config.rest);
 		}
 	}
 
-	public double[][] run(ArrayList<double[]> data) {
-		double[][] outputs = new double[data.size()][];
+	public double[][] run(double[][] data) {
+		double[][] outputs = new double[data.length][];
 		
-		for (int i = 0; i < data.size(); ++i) {
-			double[] stimulus = Arrays.copyOf(data.get(i), data.get(i).length);
+		for (int i = 0; i < data.length; ++i) {
+			double[] stimulus = Arrays.copyOf(data[i], data[i].length);
 			// Stimulate the network (equivalent to an sniff)
 			this.step(stimulus, Config.active);
 			// Calculate the output as the standard deviation of the activation history of each top KII node
@@ -198,11 +201,11 @@ public class KIII implements Serializable {
 		return outputs;
 	}
 	
-	public double[][][] runAndGetActivation(ArrayList<double[]> data) {
-		double[][][] outputs = new double[data.size()][][];
+	public double[][][] runAndGetActivation(double[][] data) {
+		double[][][] outputs = new double[data.length][][];
 		
-		for (int i = 0; i < data.size(); ++i) {
-			double[] stimulus = Arrays.copyOf(data.get(i), data.get(i).length);
+		for (int i = 0; i < data.length; ++i) {
+			double[] stimulus = Arrays.copyOf(data[i], data[i].length);
 			// Stimulate the network (equivalent to an sniff)
 			this.step(stimulus, Config.active);
 			// Calculate the output as the standard deviation of the activation history of each top KII node
@@ -215,10 +218,10 @@ public class KIII implements Serializable {
 		return outputs;
 	}
 	
-	public void runAsync(ArrayList<double[]> data) {
-		double[][] outputs = new double[data.size()][];
-		for (int i = 0; i < data.size(); ++i) {
-			double[] stimulus = Arrays.copyOf(data.get(i), data.get(i).length);			
+	public void runAsync(double[][] data) {
+		double[][] outputs = new double[data.length][];
+		for (int i = 0; i < data.length; ++i) {
+			double[] stimulus = Arrays.copyOf(data[i], data[i].length);			
 			// Stimulate the network (equivalent to an sniff)
 			this.stepAsync(stimulus, Config.active);
 			// Calculate the output as the standard deviation of the activation history of each top KII node
