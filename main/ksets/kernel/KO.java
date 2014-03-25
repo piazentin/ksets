@@ -43,12 +43,8 @@ public class KO implements Kset, Runnable, Serializable {
 	 * Solve the ODE
 	 * @return activation
 	 */
-	public void solve() {
-		solve(calculateRHS());
-	}
-	
 	public void run() {
-		solve();
+		solve(calculateRHS());
 	}
 	
 	/**

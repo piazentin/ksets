@@ -107,16 +107,16 @@ public class KII implements Kset, Runnable, Serializable {
 	 * @param weight connection weight
 	 * @param delay connection delay
 	 */
-	public void connect(HasOutput origin, double weight, int delay) {
-		k[0].connect(origin, weight, delay);
+	public Connection connect(HasOutput origin, double weight, int delay) {
+		return k[0].connect(origin, weight, delay);
 	}
 	
 	/**
 	 * @param origin origin node 
 	 * @param weight connection weight
 	 */
-	public void connectInhibitory(HasOutput origin, double weight) {
-		k[3].connect(origin, weight);
+	public Connection connectInhibitory(HasOutput origin, double weight) {
+		return k[3].connect(origin, weight);
 	}
 	
 	/**
@@ -125,23 +125,16 @@ public class KII implements Kset, Runnable, Serializable {
 	 * @param weight connection weight
 	 * @param delay connection delay
 	 */
-	public void connectInhibitory(HasOutput origin, double weight, int delay) {
-		k[3].connect(origin, weight, delay);
-	}
-	
-	/**
-	 * Same as solve()
-	 */
-	public void run(){
-		solve();
+	public Connection connectInhibitory(HasOutput origin, double weight, int delay) {
+		return k[3].connect(origin, weight, delay);
 	}
 	
 	/**
 	 * Solve the ODE for all underlying KO
 	 */
-	public void solve() {
+	public void run() {
 		for (int i = 0; i < k.length; i++) {
-			k[i].solve();
+			k[i].run();
 		}
 	}
 
@@ -159,6 +152,10 @@ public class KII implements Kset, Runnable, Serializable {
 	 */
 	public double[] getActivation() {
 		return k[0].getActivation();
+	}
+	
+	public double[] getActivation(int index) {
+		return k[index].getActivation();
 	}
 	
 	public HasOutput getExcitatoryUnit() {

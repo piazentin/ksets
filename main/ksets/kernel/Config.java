@@ -10,6 +10,7 @@ public class Config {
 	public static int rest	 = 400;
 	
 	public static double alpha = 0.005;
+	public static double habituation = 0.99995;
 	
 	// Period of the activation that must be used for computing the training correlation
 	// Must be smaller than active and historySize

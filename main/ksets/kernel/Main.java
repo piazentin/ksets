@@ -18,12 +18,12 @@ public class Main {
 		int dataSize = data.get(0).length - 1;
 		KIILayer layer = new KIILayer(dataSize, Config.defaultW1, Config.defaultWLat1, KIILayer.WLat.USE_FIXED_WEIGHTS);
 		layer.setExternalStimulus(new double[]{1,1,1,1,1});
-		layer.solve();
+		layer.run();
 		layer.setExternalStimulus(new double[]{0,0,0,0,0});
 		for (int i = 0; i < 1000; i++) {
 			System.out.println(Arrays.toString(layer.getLayerOutput()));
 			Config.incTime();
-			layer.solve();
+			layer.run();
 			layer.train();
 		}
 	}
@@ -48,13 +48,13 @@ public class Main {
 		
 		ko.setExternalStimulus(1);
 		for (int i = 0; i < 1; ++i) {
-			ko.solve();
+			ko.run();
 			System.out.print(" " + ko.getOutput(1));
 		}
 		
 		ko.setExternalStimulus(0);
 		for (int i = 0; i < 100; ++i) {
-			ko.solve();
+			ko.run();
 			System.out.print(", " + ko.getOutput(1));
 		}
 	}
@@ -64,14 +64,14 @@ public class Main {
 		
 		ki.setExternalStimulus(1);
 		for (int i = 0; i < 1; ++i) {
-			ki.solve();
+			ki.run();
 			System.out.print(" " + ki.getOutput(1));
 			Config.incTime();
 		}
 		
 		ki.setExternalStimulus(0);
 		for (int i = 0; i < 100; ++i) {
-			ki.solve();
+			ki.run();
 			System.out.print(", " + ki.getOutput(1));
 			Config.incTime();
 		}
@@ -86,14 +86,14 @@ public class Main {
 		
 		k.setExternalStimulus(1);
 		for (int i = 0; i < 100; ++i) {
-			k.solve();
+			k.run();
 			System.out.print(" " + k.getOutput(1));
 			Config.incTime();
 		}
 		
 		k.setExternalStimulus(0);
 		for (int i = 0; i < 1000; ++i) {
-			k.solve();
+			k.run();
 			System.out.print(" " + k.getOutput(1));
 			Config.incTime();
 		}

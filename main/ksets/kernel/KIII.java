@@ -19,14 +19,10 @@ public class KIII implements Serializable {
 	private double[] emptyArray; // Empty array used during the resting period
 	private int outputLayer;
 	private OutputMethod outputMethod;
+	private boolean becameUnstable;
 	
 	private transient ThreadPoolExecutor pool;
-	
-	public static enum InterLayerConnectionType {
-		AVERAGE,
-		CONVERGE_DIVERGE
-	}
-	
+
 	public static enum OutputMethod {
 		STANDARD_DEVIATION,
 		SHORT_TERM_POWER
@@ -43,32 +39,33 @@ public class KIII implements Serializable {
 		k3 = new KIILayer[3];
 		
 		k3[0] = new KIILayer(size, Config.defaultW1, Config.defaultWLat1, KIILayer.WLat.USE_FIXED_WEIGHTS);
-		k3[1] = new KIILayer(1, Config.defaultW2, Config.defaultWLat2, KIILayer.WLat.USE_FIXED_WEIGHTS);
-		k3[2] = new KIILayer(1, Config.defaultW3, Config.defaultWLat3, KIILayer.WLat.USE_FIXED_WEIGHTS);
+		k3[1] = new KIILayer(size, Config.defaultW2, Config.defaultWLat2, KIILayer.WLat.USE_FIXED_WEIGHTS);
+		k3[2] = new KIILayer(size, Config.defaultW3, Config.defaultWLat3, KIILayer.WLat.USE_FIXED_WEIGHTS);
 		
 		// Configure noise sources
-		k3[0].injectNoise(0.0, 0.07);
-		k3[1].injectNoise(0.2, 0.7);		
+		//k3[0].injectNoise(0.0, 0.07);
+		//k3[1].injectNoise(0.2, 0.7);		
 		
 		// feedforward connection from layer 1 to layer 2
-		k3[1].connect(k3[0], 0.3, -1, InterLayerConnectionType.CONVERGE_DIVERGE);
+		k3[1].connect(k3[0], 0.15, -1, InterlayerMethod.CONVERGE_DIVERGE);
 		// feedforward connection from layer 1 to layer 3
-		k3[2].connect(k3[0], 0.5, -1, InterLayerConnectionType.CONVERGE_DIVERGE); 
+		k3[2].connect(k3[0], 0.6, -1, InterlayerMethod.CONVERGE_DIVERGE); 
 
 		// excitatory feedback connection from layer 2 to layer 1
-		k3[0].connect(k3[1], 0.5, -17, InterLayerConnectionType.AVERAGE);
+		k3[0].connect(k3[1], 0.05, -17, InterlayerMethod.AVERAGE);
 		// excitatory-to-inhibitory feedback connection from layer 2 to layer 1
-		k3[0].connectInhibitory(k3[1], 0.6, -25, InterLayerConnectionType.AVERAGE);
+		k3[0].connectInhibitory(k3[1], 0.25, -25, InterlayerMethod.AVERAGE);
 		// There is no feedforward connection from layer 2 to layer 3 in the original Matlab model
 		// and in many literature diagrams
 		// k3[2].connect(k3[1], 0, 0);
 		
 		// inhibitory-to-inhibitory feedback connection from layer 3 to layer 1
-		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.5, -25, InterLayerConnectionType.AVERAGE);
+		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.05, -25, InterlayerMethod.AVERAGE);
 		// excitatory-to-inhibitory feedback connection from layer 3 to layer 2
-		k3[1].connectInhibitory(k3[2], 0.5, -25, InterLayerConnectionType.AVERAGE);
+		k3[1].connectInhibitory(k3[2], 0.2, -25, InterlayerMethod.AVERAGE);
 		
 		this.outputMethod = OutputMethod.STANDARD_DEVIATION;
+		//k3[0].switchInhibitoryTraining(true);
 		this.setOutputLayer(0);
 		
 		pool = new ThreadPoolExecutor(4, 10, 10, TimeUnit.NANOSECONDS, new PriorityBlockingQueue<Runnable>());	
@@ -100,6 +97,10 @@ public class KIII implements Serializable {
 	
 	public int getOutputLayer() {
 		return this.outputLayer;
+	}
+	
+	public KIILayer getLayer(int i) {
+		return k3[i];
 	}
 	
 	public void setOutputLayer(int outputLayer) {
@@ -135,25 +136,13 @@ public class KIII implements Serializable {
 	public double[] getWeights(int layer) {
 		return k3[layer].getWeights();
 	}
-	
-	public void solve() {
-		k3[0].solve();
-		k3[1].solve();
-		k3[2].solve();
-	}
-	
-	public void solveAsync() {
-		pool.execute(k3[0]);
-		pool.execute(k3[1]);
-		pool.execute(k3[2]);
-		
-		while(pool.getActiveCount() > 0){}
-	}
 
 	public void step(double[] stimulus, int times) {
 		setExternalStimulus(stimulus);
 		for (int i = 0; i < times; ++i) {
-			solve();
+			k3[0].run();
+			k3[1].run();
+			k3[2].run();
 			Config.incTime();
 		}
 	}
@@ -161,7 +150,11 @@ public class KIII implements Serializable {
 	public void stepAsync(double[] stimulus, int times) {
 		setExternalStimulus(stimulus);
 		for (int i = 0; i < times; ++i) {
-			solveAsync();
+			pool.execute(k3[0]);
+			pool.execute(k3[1]);
+			pool.execute(k3[2]);
+			
+			while(pool.getActiveCount() > 0){}
 			Config.incTime();
 		}
 	}
@@ -172,7 +165,49 @@ public class KIII implements Serializable {
 			this.step(stimulus, Config.active);
 			k3[outputLayer].train();
 			this.step(emptyArray, Config.rest);
+			if (k3[2].getActivationMean()[0] > 2) {
+				System.err.println("Instability detected in KIII. Will rollback weight changes.");
+				k3[outputLayer].rollbackWeights();
+				this.becameUnstable = true;
+			}
 		}
+	}
+	
+	public boolean hasBecameUnstable() {
+		return this.becameUnstable;
+	}
+	
+	public void batchTrain(double[][] data, int[] labels, int[] uniques) {
+		double[][] outputs = new double[uniques.length][k3[outputLayer].getSize()];
+		int[] labelCount = new int[uniques.length];
+		double mean = 0;
+		
+		for (int i = 0; i < data.length; ++i) {
+			double[] stimulus = Arrays.copyOf(data[i], data[i].length);
+			this.step(stimulus, Config.active);
+			
+			for (int j = 0; j < uniques.length; ++j) {
+				if (labels[i] == uniques[j]) {
+					double[] output = this.getOutput();
+					labelCount[j]++;
+					for (int k = 0; k < outputs[0].length; k++) {
+						outputs[j][k] += output[k];
+						mean += output[k];
+					}
+				}
+			}			
+			
+			this.step(emptyArray, Config.rest);
+		}
+		
+		mean = mean / (data.length * data[0].length);
+		for (int j = 0; j < outputs.length; ++j) {
+			for (int k = 0; k < outputs[0].length; k++) {
+				outputs[j][k] = outputs[j][k] / labelCount[j];
+			}
+		}		
+		
+		k3[outputLayer].batchTrain(outputs, mean);
 	}
 	
 	public void trainAsync(double[][] data) {
@@ -189,7 +224,7 @@ public class KIII implements Serializable {
 		
 		for (int i = 0; i < data.length; ++i) {
 			double[] stimulus = Arrays.copyOf(data[i], data[i].length);
-			// Stimulate the network (equivalent to an sniff)
+			// Stimulate the network (equivalent to a sniff)
 			this.step(stimulus, Config.active);
 			// Calculate the output as the standard deviation of the activation history of each top KII node
 			
@@ -235,6 +270,11 @@ public class KIII implements Serializable {
 	/*
 	 * Serialization Methods
 	 */
+	
+	public KIII copy(String filename) throws IOException, ClassNotFoundException {
+		this.save(filename);
+		return KIII.load(filename);
+	}
 	
 	public void save(String filename) throws IOException {
 		FileOutputStream fos = new FileOutputStream(filename);

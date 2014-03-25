@@ -30,6 +30,16 @@ public class KI implements Kset {
 	}
 	
 	/**
+	 * Register a connection with the primary KO set of the KI set, given the origin node, the connection weight, and the connection delay
+	 * @param origin origin node 
+	 * @param weight connection weight
+	 * @param delay connection delay
+	 */
+	public Connection connect(HasOutput origin, double weight, int delay) {
+		return k[0].connect(origin, weight, delay);
+	}
+	
+	/**
 	 * Return the output at the current network time t.
 	 * Output is from the first KO in the set (k[0])
 	 */
@@ -42,12 +52,16 @@ public class KI implements Kset {
 		return k[0].getOutput(i);
 	}
 
+	public double[] getActivation() {
+		return k[0].getActivation();
+	}
+	
 	/**
 	 * Solve the ODE for all underlying KO
 	 */
-	public void solve() {
+	public void run() {
 		for (int i = 0; i < k.length; i++) {
-			k[i].solve();
+			k[i].run();
 		}
 	}
 	
