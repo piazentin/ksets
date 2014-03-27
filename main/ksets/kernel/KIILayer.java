@@ -11,6 +11,7 @@ public class KIILayer extends KLayer implements Serializable {
 	private WLat wLatType;
 	private Connection[][] inhibitoryLatConnections;
 	private boolean trainInhibitory = false;
+	private boolean doHomeostasis = false;
 	public ArrayList<double[]> inhibitoryWeightsHistory;
 	
 	private static final double alpha = Config.alpha;
@@ -185,6 +186,8 @@ public class KIILayer extends KLayer implements Serializable {
 		for (int h = 0; h < activations.length; ++h) {
 			double[] std = activations[h];
 			
+			double homeostasis = 0;
+			
 			for (int i = 0; i < getSize(); ++i) {
 				for (int j = 0; j < getSize(); ++j) {
 					if (i == j) continue;
@@ -192,13 +195,27 @@ public class KIILayer extends KLayer implements Serializable {
 					double deltaW = 0;
 					if ((std[i] > mean) && (std[j] > mean)) {
 						deltaW = (alpha) * (std[i] - mean) * (std[j] - mean);
+						homeostasis += deltaW;
 					}
 					
 					latConnections[i][j].setWeight(latConnections[i][j].getWeight() + deltaW);
 					latConnections[i][j].setWeight(latConnections[i][j].getWeight() * Config.habituation);
 				}
 			}
+			
+			if (doHomeostasis) {
+				homeostasis = homeostasis / (getSize() * (getSize() - 1));
+				for (int i = 0; i < getSize(); ++i) {
+					for (int j = 0; j < getSize(); ++j) {
+						if (i == j) continue;
+						latConnections[i][j].setWeight(latConnections[i][j].getWeight() - homeostasis);
+					}
+				}
+			}
 		}
+		
+		// Save weights history
+		weightsHistory.add(getWeights());
 	}
 	
 	public void train() {

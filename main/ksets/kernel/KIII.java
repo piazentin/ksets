@@ -1,5 +1,7 @@
 package main.ksets.kernel;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -208,6 +210,13 @@ public class KIII implements Serializable {
 		}		
 		
 		k3[outputLayer].batchTrain(outputs, mean);
+		
+		this.step(emptyArray, Config.rest * 2);
+		if (k3[2].getActivationMean()[0] > 2) {
+			System.err.println("Instability detected in KIII. Will rollback weight changes.");
+			k3[outputLayer].rollbackWeights();
+			this.becameUnstable = true;
+		}
 	}
 	
 	public void trainAsync(double[][] data) {
@@ -271,9 +280,15 @@ public class KIII implements Serializable {
 	 * Serialization Methods
 	 */
 	
-	public KIII copy(String filename) throws IOException, ClassNotFoundException {
-		this.save(filename);
-		return KIII.load(filename);
+	public KIII copy() throws IOException, ClassNotFoundException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(bos);
+		oos.writeObject(this);
+		oos.close();
+		
+		ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()));
+	    KIII k3 = (KIII) in.readObject();
+		return k3;
 	}
 	
 	public void save(String filename) throws IOException {
