@@ -245,11 +245,13 @@ public class KIILayer extends KLayer implements Serializable {
 			}
 		}
 		
-		homeostasis = homeostasis / (getSize() * (getSize() - 1));
-		for (int i = 0; i < getSize(); ++i) {
-			for (int j = 0; j < getSize(); ++j) {
-				if (i == j) continue;
-				latConnections[i][j].setWeight(latConnections[i][j].getWeight() - homeostasis);
+		if (doHomeostasis) {
+			homeostasis = homeostasis / (getSize() * (getSize() - 1));
+			for (int i = 0; i < getSize(); ++i) {
+				for (int j = 0; j < getSize(); ++j) {
+					if (i == j) continue;
+					latConnections[i][j].setWeight(latConnections[i][j].getWeight() - homeostasis);
+				}
 			}
 		}
 		
