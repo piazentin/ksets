@@ -21,7 +21,8 @@ public class KIII implements Serializable {
 	private double[] emptyArray; // Empty array used during the resting period
 	private int outputLayer;
 	private OutputMethod outputMethod;
-	private boolean becameUnstable;
+	private boolean becameUnstable = false;
+	private boolean homeostasisActivated = false;
 	
 	private transient ThreadPoolExecutor pool;
 
@@ -170,7 +171,13 @@ public class KIII implements Serializable {
 			if (k3[2].getActivationMean()[0] > 2) {
 				System.err.println("Instability detected in KIII. Will rollback weight changes.");
 				k3[outputLayer].rollbackWeights();
-				this.becameUnstable = true;
+				if (this.homeostasisActivated == true) {
+					this.becameUnstable = true;					
+				} else {
+					System.out.println("Homeostasis was activated due to instability detection.");
+					this.homeostasisActivated = true;
+					k3[outputLayer].switchHomeostasis(true);
+				}				
 			}
 		}
 	}

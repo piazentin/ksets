@@ -182,6 +182,10 @@ public class KIILayer extends KLayer implements Serializable {
 		this.trainInhibitory = trainInhibitory;
 	}
 	
+	public void switchHomeostasis(boolean doHomeostasis) {
+		this.doHomeostasis = doHomeostasis;
+	}
+	
 	public void batchTrain(double[][] activations, double mean) {
 		for (int h = 0; h < activations.length; ++h) {
 			double[] std = activations[h];
@@ -241,7 +245,7 @@ public class KIILayer extends KLayer implements Serializable {
 				}
 				
 				latConnections[i][j].setWeight(latConnections[i][j].getWeight() + deltaW);
-				//latConnections[i][j].setWeight(latConnections[i][j].getWeight() * Config.habituation);
+				latConnections[i][j].setWeight(latConnections[i][j].getWeight() * Config.habituation);
 			}
 		}
 		
