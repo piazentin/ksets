@@ -14,8 +14,6 @@ public class KIILayer extends KLayer implements Serializable {
 	private boolean doHomeostasis = false;
 	public ArrayList<double[]> inhibitoryWeightsHistory;
 	
-	private static final double alpha = Config.alpha;
-	
 	public KIILayer(int size, double wee, double wei, double wie, double wii, double wLat_ee, double wLat_ii, WLat type) {
 		super(size);
 		this.wLatType = type;
@@ -198,7 +196,7 @@ public class KIILayer extends KLayer implements Serializable {
 					
 					double deltaW = 0;
 					if ((std[i] > mean) && (std[j] > mean)) {
-						deltaW = (alpha) * (std[i] - mean) * (std[j] - mean);
+						deltaW = (this.learningRate) * (std[i] - mean) * (std[j] - mean);
 						homeostasis += deltaW;
 					}
 					
@@ -240,7 +238,7 @@ public class KIILayer extends KLayer implements Serializable {
 				
 				double deltaW = 0;				
 				if ((std[i] > meanStd) && (std[j] > meanStd)) {
-					deltaW = (alpha / nLatConnections) * (std[i] - meanStd) * (std[j] - meanStd);
+					deltaW = (this.learningRate / nLatConnections) * (std[i] - meanStd) * (std[j] - meanStd);
 					homeostasis += deltaW;
 				}
 				
@@ -295,7 +293,7 @@ public class KIILayer extends KLayer implements Serializable {
 				if (i == j) continue;
 				
 				if (std[i] < meanStd && std[j] < meanStd) {
-					deltaW = -1 * (alpha / nLatConnections) * (std[i] - meanStd) * (std[j] - meanStd);
+					deltaW = -1 * (this.learningRate / nLatConnections) * (std[i] - meanStd) * (std[j] - meanStd);
 				}
 				
 				inhibitoryLatConnections[i][j].setWeight(inhibitoryLatConnections[i][j].getWeight() + deltaW);

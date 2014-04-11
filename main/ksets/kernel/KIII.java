@@ -46,8 +46,11 @@ public class KIII implements Serializable {
 		k3[2] = new KIILayer(size, Config.defaultW3, Config.defaultWLat3, KIILayer.WLat.USE_FIXED_WEIGHTS);
 		
 		// Configure noise sources
-		//k3[0].injectNoise(0.0, 0.07);
-		//k3[1].injectNoise(0.2, 0.7);		
+		//k3[0].injectNoise(0.0, 0.02);
+		//k3[1].injectNoise(0.0, 0.0002);	
+		k3[0].learningRate = Config.alpha;
+		k3[1].learningRate = Config.alpha;
+		k3[2].learningRate = Config.alpha;
 		
 		// feedforward connection from layer 1 to layer 2
 		k3[1].connect(k3[0], 0.15, -1, InterlayerMethod.CONVERGE_DIVERGE);
@@ -58,9 +61,8 @@ public class KIII implements Serializable {
 		k3[0].connect(k3[1], 0.05, -17, InterlayerMethod.AVERAGE);
 		// excitatory-to-inhibitory feedback connection from layer 2 to layer 1
 		k3[0].connectInhibitory(k3[1], 0.25, -25, InterlayerMethod.AVERAGE);
-		// There is no feedforward connection from layer 2 to layer 3 in the original Matlab model
-		// and in many literature diagrams
-		// k3[2].connect(k3[1], 0, 0);
+
+		// There is no connection from layer 2 to layer 3
 		
 		// inhibitory-to-inhibitory feedback connection from layer 3 to layer 1
 		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.05, -25, InterlayerMethod.AVERAGE);
@@ -69,7 +71,7 @@ public class KIII implements Serializable {
 		
 		this.outputMethod = OutputMethod.STANDARD_DEVIATION;
 		//k3[0].switchInhibitoryTraining(true);
-		this.setOutputLayer(0);
+		this.setOutputLayer(1);
 		
 		pool = new ThreadPoolExecutor(4, 10, 10, TimeUnit.NANOSECONDS, new PriorityBlockingQueue<Runnable>());	
 	}
@@ -169,14 +171,16 @@ public class KIII implements Serializable {
 			k3[outputLayer].train();
 			this.step(emptyArray, Config.rest);
 			if (k3[2].getActivationMean()[0] > 2) {
-				System.err.println("Instability detected in KIII. Will rollback weight changes.");
+				System.err.println("Instability detected in KIII. Last weight changes undone.");
 				k3[outputLayer].rollbackWeights();
 				if (this.homeostasisActivated == true) {
-					this.becameUnstable = true;					
+					this.becameUnstable = true;		
+					return;
 				} else {
 					System.out.println("Homeostasis was activated due to instability detection.");
 					this.homeostasisActivated = true;
 					k3[outputLayer].switchHomeostasis(true);
+					k3[outputLayer].learningRate = k3[outputLayer].learningRate / 10;
 				}				
 			}
 		}
