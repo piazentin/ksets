@@ -35,7 +35,7 @@ public class Main {
 		k3.initialize();
 		double[][][] output = k3.getHistory();
 
-		double[][][] outputRun = k3.runAndGetActivation(Utils.toMatrix(data));
+		double[][][] outputRun = k3.runAndGetRawActivation(Utils.toMatrix(data));
 		Utils.saveMatrix(output[0], "output0.txt");
 		Utils.saveMatrix(output[1], "output1.txt");
 		Utils.saveMatrix(output[2], "output2.txt");

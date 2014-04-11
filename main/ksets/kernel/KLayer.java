@@ -20,7 +20,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 	protected Connection[][] latConnections;
 	protected ArrayList<double[]> weightsHistory;
 	protected int nLatConnections;
-	protected double learningRate;
+	private double learningRate;
 	
 	public KLayer(int size) {
 		id = Config.getNextId();
@@ -67,6 +67,10 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		
 		// Save weights history
 		weightsHistory.add(getWeights());
+	}
+	
+	public void setLearningRate(double alpha) {
+		this.learningRate = alpha;
 	}
 	
 	protected void setLateralConnections(Connection[][] latConnections) {

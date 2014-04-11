@@ -38,33 +38,30 @@ public class KIII implements Serializable {
 		k3[1] = new KIILayer(size, Config.defaultW2, Config.defaultWLat2, KIILayer.WLat.USE_FIXED_WEIGHTS);
 		k3[2] = new KIILayer(size, Config.defaultW3, Config.defaultWLat3, KIILayer.WLat.USE_FIXED_WEIGHTS);
 		
-		// Configure noise sources
-		//k3[0].injectNoise(0.0, 0.02);
-		//k3[1].injectNoise(0.0, 0.0002);	
-		k3[0].learningRate = Config.alpha;
-		k3[1].learningRate = Config.alpha;
-		k3[2].learningRate = Config.alpha;
+		k3[0].setLearningRate(Config.alpha);
+		k3[1].setLearningRate(Config.alpha);
+		k3[2].setLearningRate(Config.alpha);
 		
-		// feedforward connection from layer 1 to layer 2
+		// Feedforward connection from layer 1 to layer 2
 		k3[1].connect(k3[0], 0.15, -1, InterlayerMethod.CONVERGE_DIVERGE);
-		// feedforward connection from layer 1 to layer 3
+		// Feedforward connection from layer 1 to layer 3
 		k3[2].connect(k3[0], 0.6, -1, InterlayerMethod.CONVERGE_DIVERGE); 
 
-		// excitatory feedback connection from layer 2 to layer 1
+		// Excitatory feedback connection from layer 2 to layer 1
 		k3[0].connect(k3[1], 0.05, -17, InterlayerMethod.AVERAGE);
-		// excitatory-to-inhibitory feedback connection from layer 2 to layer 1
+		// Excitatory-to-inhibitory feedback connection from layer 2 to layer 1
 		k3[0].connectInhibitory(k3[1], 0.25, -25, InterlayerMethod.AVERAGE);
 
 		// There is no connection from layer 2 to layer 3
 		
-		// inhibitory-to-inhibitory feedback connection from layer 3 to layer 1
+		// Inhibitory-to-inhibitory feedback connection from layer 3 to layer 1
 		k3[0].connectInhibitory(new LowerOutputAdapter(k3[2]), -0.05, -25, InterlayerMethod.AVERAGE);
-		// excitatory-to-inhibitory feedback connection from layer 3 to layer 2
+		// Excitatory-to-inhibitory feedback connection from layer 3 to layer 2
 		k3[1].connectInhibitory(k3[2], 0.2, -25, InterlayerMethod.AVERAGE);
 		
-		//k3[0].switchInhibitoryTraining(true);
-		this.setOutputLayer(1);
+		this.setOutputLayer(0);
 		
+		// Create thread pool for parallel execution (for use with traiAsync and runAsync)
 		pool = new ThreadPoolExecutor(4, 10, 10, TimeUnit.NANOSECONDS, new PriorityBlockingQueue<Runnable>());	
 	}
 	
@@ -195,7 +192,7 @@ public class KIII implements Serializable {
 		return outputs;
 	}
 	
-	public double[][][] runAndGetActivation(double[][] data) {
+	public double[][][] runAndGetRawActivation(double[][] data) {
 		double[][][] outputs = new double[data.length][][];
 		
 		for (int i = 0; i < data.length; ++i) {
@@ -228,16 +225,22 @@ public class KIII implements Serializable {
 	
 	/*
 	 * Serialization Methods
-	 */
-	
-	public KIII copy() throws IOException, ClassNotFoundException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		ObjectOutputStream oos = new ObjectOutputStream(bos);
-		oos.writeObject(this);
-		oos.close();
+	 */	
+	public KIII copy() {
+		KIII k3 = null;
 		
-		ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()));
-	    KIII k3 = (KIII) in.readObject();
+		try {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			ObjectOutputStream oos = new ObjectOutputStream(bos);
+			oos.writeObject(this);
+			oos.close();
+			
+			ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()));
+		    k3 = (KIII) in.readObject();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		return k3;
 	}
 	
