@@ -21,7 +21,6 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 	protected ArrayList<double[]> weightsHistory;
 	protected int nLatConnections;
 	protected double learningRate;
-	private boolean doHomeostasis = false;
 	
 	public KLayer(int size) {
 		id = Config.getNextId();
@@ -50,8 +49,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 			meanStd += std[i];
 		}
 		
-		meanStd = meanStd / std.length;	
-		double homeostasis = 0;
+		meanStd = meanStd / std.length;
 		
 		for (int i = 0; i < getSize(); ++i) {
 			for (int j = 0; j < getSize(); ++j) {
@@ -60,7 +58,6 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 				double deltaW = 0;				
 				if ((std[i] > meanStd) && (std[j] > meanStd)) {
 					deltaW = (this.learningRate / nLatConnections) * (std[i] - meanStd) * (std[j] - meanStd);
-					homeostasis += deltaW;
 				}
 				
 				latConnections[i][j].setWeight(latConnections[i][j].getWeight() + deltaW);
@@ -68,22 +65,8 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 			}
 		}
 		
-		if (doHomeostasis) {
-			homeostasis = homeostasis / (getSize() * (getSize() - 1));
-			for (int i = 0; i < getSize(); ++i) {
-				for (int j = 0; j < getSize(); ++j) {
-					if (i == j) continue;
-					latConnections[i][j].setWeight(latConnections[i][j].getWeight() - homeostasis);
-				}
-			}
-		}
-		
 		// Save weights history
 		weightsHistory.add(getWeights());
-	}
-	
-	public void switchHomeostasis(boolean doHomeostasis) {
-		this.doHomeostasis = doHomeostasis;
 	}
 	
 	protected void setLateralConnections(Connection[][] latConnections) {
