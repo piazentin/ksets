@@ -21,6 +21,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 	protected ArrayList<double[]> weightsHistory;
 	protected int nLatConnections;
 	protected double learningRate;
+	private boolean doHomeostasis = false;
 	
 	public KLayer(int size) {
 		id = Config.getNextId();
@@ -38,6 +39,51 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 			stimulus[i] += this.injectNoise ? noise.get() : 0; 
 			k[i].setExternalStimulus(stimulus[i]);
 		}
+	}
+	
+	public void train() {
+		double meanStd = 0.0;
+		double[] std = new double[k.length];
+		
+		for (int i = 0; i < getSize(); ++i) {
+			std[i] = stardardDeviation(k[i].getActivation());
+			meanStd += std[i];
+		}
+		
+		meanStd = meanStd / std.length;	
+		double homeostasis = 0;
+		
+		for (int i = 0; i < getSize(); ++i) {
+			for (int j = 0; j < getSize(); ++j) {
+				if (i == j) continue;
+				
+				double deltaW = 0;				
+				if ((std[i] > meanStd) && (std[j] > meanStd)) {
+					deltaW = (this.learningRate / nLatConnections) * (std[i] - meanStd) * (std[j] - meanStd);
+					homeostasis += deltaW;
+				}
+				
+				latConnections[i][j].setWeight(latConnections[i][j].getWeight() + deltaW);
+				latConnections[i][j].setWeight(latConnections[i][j].getWeight() * Config.habituation);
+			}
+		}
+		
+		if (doHomeostasis) {
+			homeostasis = homeostasis / (getSize() * (getSize() - 1));
+			for (int i = 0; i < getSize(); ++i) {
+				for (int j = 0; j < getSize(); ++j) {
+					if (i == j) continue;
+					latConnections[i][j].setWeight(latConnections[i][j].getWeight() - homeostasis);
+				}
+			}
+		}
+		
+		// Save weights history
+		weightsHistory.add(getWeights());
+	}
+	
+	public void switchHomeostasis(boolean doHomeostasis) {
+		this.doHomeostasis = doHomeostasis;
 	}
 	
 	protected void setLateralConnections(Connection[][] latConnections) {

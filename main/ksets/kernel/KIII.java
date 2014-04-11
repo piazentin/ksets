@@ -190,46 +190,6 @@ public class KIII implements Serializable {
 		return this.becameUnstable;
 	}
 	
-	public void batchTrain(double[][] data, int[] labels, int[] uniques) {
-		double[][] outputs = new double[uniques.length][k3[outputLayer].getSize()];
-		int[] labelCount = new int[uniques.length];
-		double mean = 0;
-		
-		for (int i = 0; i < data.length; ++i) {
-			double[] stimulus = Arrays.copyOf(data[i], data[i].length);
-			this.step(stimulus, Config.active);
-			
-			for (int j = 0; j < uniques.length; ++j) {
-				if (labels[i] == uniques[j]) {
-					double[] output = this.getOutput();
-					labelCount[j]++;
-					for (int k = 0; k < outputs[0].length; k++) {
-						outputs[j][k] += output[k];
-						mean += output[k];
-					}
-				}
-			}			
-			
-			this.step(emptyArray, Config.rest);
-		}
-		
-		mean = mean / (data.length * data[0].length);
-		for (int j = 0; j < outputs.length; ++j) {
-			for (int k = 0; k < outputs[0].length; k++) {
-				outputs[j][k] = outputs[j][k] / labelCount[j];
-			}
-		}		
-		
-		k3[outputLayer].batchTrain(outputs, mean);
-		
-		this.step(emptyArray, Config.rest * 2);
-		if (k3[2].getActivationMean()[0] > 2) {
-			System.err.println("Instability detected in KIII. Will rollback weight changes.");
-			k3[outputLayer].rollbackWeights();
-			this.becameUnstable = true;
-		}
-	}
-	
 	public void trainAsync(double[][] data) {
 		for (int i = 0; i < data.length; ++i) {
 			double[] stimulus = Arrays.copyOf(data[i], data[i].length);

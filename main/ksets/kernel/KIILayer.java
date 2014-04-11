@@ -10,9 +10,6 @@ public class KIILayer extends KLayer implements Serializable {
 
 	private WLat wLatType;
 	private Connection[][] inhibitoryLatConnections;
-	private boolean trainInhibitory = false;
-	private boolean doHomeostasis = false;
-	public ArrayList<double[]> inhibitoryWeightsHistory;
 	
 	public KIILayer(int size, double wee, double wei, double wie, double wii, double wLat_ee, double wLat_ii, WLat type) {
 		super(size);
@@ -48,9 +45,6 @@ public class KIILayer extends KLayer implements Serializable {
 		
 		weightsHistory = new ArrayList<double[]>();
 		weightsHistory.add(getWeights());
-		
-		inhibitoryWeightsHistory = new ArrayList<double[]>();
-		inhibitoryWeightsHistory.add(getInhibitoryWeights());
 	}
 	
 	public KIILayer(int size, double[] defaultW1, double[] defaultWLat1, WLat type) {
@@ -176,94 +170,6 @@ public class KIILayer extends KLayer implements Serializable {
 		}
 	}
 	
-	public void switchInhibitoryTraining(boolean trainInhibitory) {
-		this.trainInhibitory = trainInhibitory;
-	}
-	
-	public void switchHomeostasis(boolean doHomeostasis) {
-		this.doHomeostasis = doHomeostasis;
-	}
-	
-	public void batchTrain(double[][] activations, double mean) {
-		for (int h = 0; h < activations.length; ++h) {
-			double[] std = activations[h];
-			
-			double homeostasis = 0;
-			
-			for (int i = 0; i < getSize(); ++i) {
-				for (int j = 0; j < getSize(); ++j) {
-					if (i == j) continue;
-					
-					double deltaW = 0;
-					if ((std[i] > mean) && (std[j] > mean)) {
-						deltaW = (this.learningRate) * (std[i] - mean) * (std[j] - mean);
-						homeostasis += deltaW;
-					}
-					
-					latConnections[i][j].setWeight(latConnections[i][j].getWeight() + deltaW);
-					latConnections[i][j].setWeight(latConnections[i][j].getWeight() * Config.habituation);
-				}
-			}
-			
-			if (doHomeostasis) {
-				homeostasis = homeostasis / (getSize() * (getSize() - 1));
-				for (int i = 0; i < getSize(); ++i) {
-					for (int j = 0; j < getSize(); ++j) {
-						if (i == j) continue;
-						latConnections[i][j].setWeight(latConnections[i][j].getWeight() - homeostasis);
-					}
-				}
-			}
-		}
-		
-		// Save weights history
-		weightsHistory.add(getWeights());
-	}
-	
-	public void train() {
-		double meanStd = 0.0;
-		double[] std = new double[k.length];
-		
-		for (int i = 0; i < getSize(); ++i) {
-			std[i] = stardardDeviation(k[i].getActivation());
-			meanStd += std[i];
-		}
-		
-		meanStd = meanStd / std.length;	
-		double homeostasis = 0;
-		
-		for (int i = 0; i < getSize(); ++i) {
-			for (int j = 0; j < getSize(); ++j) {
-				if (i == j) continue;
-				
-				double deltaW = 0;				
-				if ((std[i] > meanStd) && (std[j] > meanStd)) {
-					deltaW = (this.learningRate / nLatConnections) * (std[i] - meanStd) * (std[j] - meanStd);
-					homeostasis += deltaW;
-				}
-				
-				latConnections[i][j].setWeight(latConnections[i][j].getWeight() + deltaW);
-				latConnections[i][j].setWeight(latConnections[i][j].getWeight() * Config.habituation);
-			}
-		}
-		
-		if (doHomeostasis) {
-			homeostasis = homeostasis / (getSize() * (getSize() - 1));
-			for (int i = 0; i < getSize(); ++i) {
-				for (int j = 0; j < getSize(); ++j) {
-					if (i == j) continue;
-					latConnections[i][j].setWeight(latConnections[i][j].getWeight() - homeostasis);
-				}
-			}
-		}
-		
-		// Save weights history
-		weightsHistory.add(getWeights());
-		if (trainInhibitory) {
-			trainInhibitory();
-		}
-	}
-	
 	public void rollbackWeights() {
 		double[] weights = weightsHistory.get(weightsHistory.size() - 2);
 		int index = 0;
@@ -274,34 +180,6 @@ public class KIILayer extends KLayer implements Serializable {
 				latConnections[i][j].setWeight(weights[index++]);
 			}
 		}
-	}
-	
-	public void trainInhibitory() {
-		double meanStd = 0.0;
-		double[] std = new double[k.length];
-		
-		for (int i = 0; i < getSize(); ++i) {
-			std[i] = stardardDeviation(((KII) k[i]).getActivation(3));
-			meanStd += std[i];
-		}
-		
-		meanStd = meanStd / std.length;	
-		double deltaW = 0;
-		
-		for (int i = 0; i < getSize(); ++i) {
-			for (int j = 0; j < getSize(); ++j) {
-				if (i == j) continue;
-				
-				if (std[i] < meanStd && std[j] < meanStd) {
-					deltaW = -1 * (this.learningRate / nLatConnections) * (std[i] - meanStd) * (std[j] - meanStd);
-				}
-				
-				inhibitoryLatConnections[i][j].setWeight(inhibitoryLatConnections[i][j].getWeight() + deltaW);
-				inhibitoryLatConnections[i][j].setWeight(inhibitoryLatConnections[i][j].getWeight() * Config.habituation);
-			}
-		}
-		// Save weights history
-		inhibitoryWeightsHistory.add(getWeights());
 	}
 	
 	public double[][] getInhibitoryHistory() {
@@ -326,9 +204,5 @@ public class KIILayer extends KLayer implements Serializable {
 		}
 		
 		return weights;
-	}
-	
-	public double[][] getInhibitoryWeightsHistory() {
-		return Utils.toMatrix(inhibitoryWeightsHistory);
 	}
 }
