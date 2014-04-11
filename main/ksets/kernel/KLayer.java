@@ -148,7 +148,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		return activation;
 	}
 	
-	public double[] getActivationDeviation() {
+	public double[] getActivationStd() {
 		double[] std = new double[k.length];
 		
 		for (int i = 0; i < getSize(); ++i) {
@@ -167,26 +167,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		
 		return mean;
 	}
-	
-	public double[] getActivationPower() {
-		double[] pow = new double[k.length];
-		
-		for (int i = 0; i < getSize(); ++i) {
-			pow[i] = powerSum(k[i].getActivation());
-		}
-		
-		return pow;
-	}
-	
-	private double powerSum(double[] x) {
-		double sum = 0;
-		for (int i = 0; i < x.length; i++) {
-			sum = sum + Math.pow(x[i], 2);
-		}
 
-		return Math.sqrt(sum);
-	}
-	
 	protected double stardardDeviation(double[] x) {
 		double sum = 0;
 		double x_ = mean(x);

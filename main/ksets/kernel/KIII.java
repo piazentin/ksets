@@ -20,17 +20,11 @@ public class KIII implements Serializable {
 	private int inputSize;
 	private double[] emptyArray; // Empty array used during the resting period
 	private int outputLayer;
-	private OutputMethod outputMethod;
 	private boolean becameUnstable = false;
 	private boolean homeostasisActivated = false;
 	
 	private transient ThreadPoolExecutor pool;
 
-	public static enum OutputMethod {
-		STANDARD_DEVIATION,
-		SHORT_TERM_POWER
-	}
-	
 	/**
 	 * Create a new KIII with the default configurations from the old matlab implementation.
 	 * @param size
@@ -69,7 +63,6 @@ public class KIII implements Serializable {
 		// excitatory-to-inhibitory feedback connection from layer 3 to layer 2
 		k3[1].connectInhibitory(k3[2], 0.2, -25, InterlayerMethod.AVERAGE);
 		
-		this.outputMethod = OutputMethod.STANDARD_DEVIATION;
 		//k3[0].switchInhibitoryTraining(true);
 		this.setOutputLayer(1);
 		
@@ -129,13 +122,7 @@ public class KIII implements Serializable {
 	}
 	
 	public double[] getOutput() {
-		switch (outputMethod) {
-		case SHORT_TERM_POWER:
-			return k3[this.outputLayer].getActivationPower();
-		case STANDARD_DEVIATION:
-		default:
-			return k3[this.outputLayer].getActivationDeviation();
-		}
+		return k3[this.outputLayer].getActivationStd();
 	}
 	
 	public double[] getWeights(int layer) {
