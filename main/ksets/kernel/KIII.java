@@ -9,9 +9,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class KIII implements Serializable {
 
@@ -21,8 +18,6 @@ public class KIII implements Serializable {
 	private double[] emptyArray; // Empty array used during the resting period
 	private int outputLayer;
 	private boolean becameUnstable = false;
-	
-	private transient ThreadPoolExecutor pool;
 
 	/**
 	 * Create a new KIII with the default configurations from the old matlab implementation.
@@ -60,9 +55,6 @@ public class KIII implements Serializable {
 		k3[1].connectInhibitory(k3[2], 0.2, -25, InterlayerMethod.AVERAGE);
 		
 		this.setOutputLayer(0);
-		
-		// Create thread pool for parallel execution (for use with traiAsync and runAsync)
-		pool = new ThreadPoolExecutor(4, 10, 10, TimeUnit.NANOSECONDS, new PriorityBlockingQueue<Runnable>());	
 	}
 	
 	/**
@@ -72,11 +64,11 @@ public class KIII implements Serializable {
 		double[] perturbed = new double[inputSize];
 		
 		for (int i = 0; i < inputSize; ++i) {
-			perturbed[i] = Math.random() - 0.5;
+			perturbed[i] = 1; //Math.random() - 0.5;
 		}
 		
 		this.step(perturbed, 1);
-		this.step(emptyArray, Config.rest);
+		this.step(emptyArray, Config.rest*4);
 	}
 	
 	public double[][][] getHistory() {
@@ -135,18 +127,6 @@ public class KIII implements Serializable {
 		}
 	}
 
-	public void stepAsync(double[] stimulus, int times) {
-		setExternalStimulus(stimulus);
-		for (int i = 0; i < times; ++i) {
-			pool.execute(k3[0]);
-			pool.execute(k3[1]);
-			pool.execute(k3[2]);
-			
-			while(pool.getActiveCount() > 0){}
-			Config.incTime();
-		}
-	}
-
 	public void train(double[][] data) {
 		for (int i = 0; i < data.length; ++i) {
 			double[] stimulus = Arrays.copyOf(data[i], data[i].length);
@@ -164,15 +144,6 @@ public class KIII implements Serializable {
 	
 	public boolean hasBecameUnstable() {
 		return this.becameUnstable;
-	}
-	
-	public void trainAsync(double[][] data) {
-		for (int i = 0; i < data.length; ++i) {
-			double[] stimulus = Arrays.copyOf(data[i], data[i].length);
-			this.stepAsync(stimulus, Config.active);
-			k3[outputLayer].train();
-			this.stepAsync(emptyArray, Config.rest);
-		}
 	}
 
 	public double[][] run(double[][] data) {
@@ -208,20 +179,6 @@ public class KIII implements Serializable {
 		
 		return outputs;
 	}
-	
-	public void runAsync(double[][] data) {
-		double[][] outputs = new double[data.length][];
-		for (int i = 0; i < data.length; ++i) {
-			double[] stimulus = Arrays.copyOf(data[i], data[i].length);			
-			// Stimulate the network (equivalent to an sniff)
-			this.stepAsync(stimulus, Config.active);
-			// Calculate the output as the standard deviation of the activation history of each top KII node
-			outputs[i] = this.getOutput();			
-			// Put the network to rest, and prepare for the next stimulus
-			this.stepAsync(emptyArray, Config.rest);
-		}
-	}
-	
 	
 	/*
 	 * Serialization Methods
@@ -262,7 +219,6 @@ public class KIII implements Serializable {
 	private void readObject(ObjectInputStream is) {
 		try {
 			is.defaultReadObject();
-			pool = new ThreadPoolExecutor(4, 10, 10, TimeUnit.NANOSECONDS, new PriorityBlockingQueue<Runnable>());	
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

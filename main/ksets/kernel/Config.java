@@ -5,12 +5,12 @@ public class Config {
 	public static int historySize = 10000;
 	public static int time = 0;
 	
-	// Duration in <solve> cicles of the "active" and "resting" periods of the network
-	public static int active = 300;
-	public static int rest	 = 200;
+	// Duration in solve cycles of the "active" and "resting" periods of the network
+	public static int active = 600;
+	public static int rest	 = 400;
 	
-	public static double alpha = 0.05;
-	public static double habituation = 0.9995;
+	public static double alpha = 0.005;
+	public static double habituation = 0.99995;
 	
 	// Period of the activation that must be used for computing the training correlation
 	// Must be smaller than active and historySize
