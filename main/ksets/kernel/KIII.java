@@ -18,6 +18,7 @@ public class KIII implements Serializable {
 	private double[] emptyArray; // Empty array used during the resting period
 	private int outputLayer;
 	private boolean becameUnstable = false;
+	private boolean detectInstability = false; 
 
 	/**
 	 * Create a new KIII with the default configurations from the old matlab implementation.
@@ -133,13 +134,17 @@ public class KIII implements Serializable {
 			this.step(stimulus, Config.active);
 			k3[outputLayer].train();
 			this.step(emptyArray, Config.rest);
-			if (k3[2].getActivationMean()[0] > 2) {
+			if (detectInstability && k3[2].getActivationMean()[0] > 2) {
 				System.err.println("Instability detected in KIII. Last weight changes undone.");
 				k3[outputLayer].rollbackWeights();
 				this.becameUnstable = true;
 				return;
 			}
 		}
+	}
+	
+	public void setDetectInstability(boolean detectInstability) {
+		this.detectInstability = detectInstability;
 	}
 	
 	public boolean hasBecameUnstable() {
