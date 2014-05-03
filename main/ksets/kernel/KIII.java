@@ -19,20 +19,26 @@ public class KIII implements Serializable {
 	private int outputLayer;
 	private boolean becameUnstable = false;
 	private boolean detectInstability = false; 
+	private boolean[] trainLayer;
 
 	/**
 	 * Create a new KIII with the default configurations from the old matlab implementation.
 	 * @param size
 	 */
 	public KIII(int size) {
-		this.inputSize = size;
+		this(size, size, size);
+	}
+	
+	public KIII(int size1, int size2, int size3) {
+		this.inputSize = size1;
 		this.emptyArray = new double[inputSize];
 		
 		k3 = new KIILayer[3];
+		this.trainLayer = new boolean[3];
 		
-		k3[0] = new KIILayer(size, Config.defaultW1, Config.defaultWLat1, KIILayer.WLat.USE_FIXED_WEIGHTS);
-		k3[1] = new KIILayer(size, Config.defaultW2, Config.defaultWLat2, KIILayer.WLat.USE_FIXED_WEIGHTS);
-		k3[2] = new KIILayer(size, Config.defaultW3, Config.defaultWLat3, KIILayer.WLat.USE_FIXED_WEIGHTS);
+		k3[0] = new KIILayer(size1, Config.defaultW1, Config.defaultWLat1, KIILayer.WLat.USE_FIXED_WEIGHTS);
+		k3[1] = new KIILayer(size2, Config.defaultW2, Config.defaultWLat2, KIILayer.WLat.USE_FIXED_WEIGHTS);
+		k3[2] = new KIILayer(size3, Config.defaultW3, Config.defaultWLat3, KIILayer.WLat.USE_FIXED_WEIGHTS);
 		
 		k3[0].setLearningRate(Config.alpha);
 		k3[1].setLearningRate(Config.alpha);
@@ -55,7 +61,8 @@ public class KIII implements Serializable {
 		// Excitatory-to-inhibitory feedback connection from layer 3 to layer 2
 		k3[1].connectInhibitory(k3[2], 0.2, -25, InterlayerMethod.AVERAGE);
 		
-		this.setOutputLayer(0);
+		this.setOutputLayer(2);
+		trainLayer[2] = true;
 	}
 	
 	/**
@@ -65,7 +72,7 @@ public class KIII implements Serializable {
 		double[] perturbed = new double[inputSize];
 		
 		for (int i = 0; i < inputSize; ++i) {
-			perturbed[i] = 1; //Math.random() - 0.5;
+			perturbed[i] = 1;
 		}
 		
 		this.step(perturbed, 1);
@@ -86,6 +93,14 @@ public class KIII implements Serializable {
 		return this.outputLayer;
 	}
 	
+	public void switchLayerTraining(boolean[] trainParam) {
+		if (trainParam.length == this.trainLayer.length) {
+			this.trainLayer = trainParam;
+		} else {
+			throw new RuntimeException("trainParam has size " + trainParam.length + ". Must be " + trainLayer.length);
+		}
+	}
+	
 	public KIILayer getLayer(int i) {
 		return k3[i];
 	}
@@ -94,7 +109,6 @@ public class KIII implements Serializable {
 		if (outputLayer < 0 || outputLayer >= k3.length) {
 			throw new RuntimeException("outputLayer must be a number between 0 and number of KIII layers - 1");
 		}
-		
 		this.outputLayer = outputLayer;
 	}
 	
@@ -132,19 +146,43 @@ public class KIII implements Serializable {
 		for (int i = 0; i < data.length; ++i) {
 			double[] stimulus = Arrays.copyOf(data[i], data[i].length);
 			this.step(stimulus, Config.active);
-			k3[outputLayer].train();
+			trainLayers();
 			this.step(emptyArray, Config.rest);
 			if (detectInstability && k3[2].getActivationMean()[0] > 2) {
 				System.err.println("Instability detected in KIII. Last weight changes undone.");
-				k3[outputLayer].rollbackWeights();
+				rollbackWeights();
 				this.becameUnstable = true;
 				return;
 			}
 		}
 	}
 	
+	private void trainLayers() {
+		for (int i = 0; i < k3.length; i++) {
+			if (trainLayer[i]) {
+				k3[outputLayer].train();
+			}
+		}
+	}
+	
+	private void rollbackWeights() {
+		for (int i = 0; i < k3.length; i++) {
+			if (trainLayer[i]) {
+				k3[outputLayer].rollbackWeights();
+			}
+		}
+	}
+	
 	public void setDetectInstability(boolean detectInstability) {
 		this.detectInstability = detectInstability;
+	}
+	
+	public void setLearningRate(int layer, double alpha) {
+		this.k3[layer].setLearningRate(alpha);
+	}
+	
+	public double getLearningRate(int layer) {
+		return this.k3[layer].getLearningRate();
 	}
 	
 	public boolean hasBecameUnstable() {

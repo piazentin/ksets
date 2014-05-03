@@ -126,8 +126,8 @@ public class KIILayer extends KLayer implements Serializable {
 	private void connectConvergeDiverge(Layer layer, double weight, int delay, ConnectionType fromType, ConnectionType toType) {
 		int nCon = Math.max(layer.getSize(), this.getSize());
 		double wNorm = weight / nCon;
-		double ratio = layer.getSize() / this.getSize();
-		
+		double ratio = layer.getSize() / ((double) this.getSize());
+
 		for (int i = 1; i <= nCon; i++) {
 			int idxTo = -1;
 			HasOutput output = null;
@@ -144,6 +144,8 @@ public class KIILayer extends KLayer implements Serializable {
 				idxTo = i - 1;
 			}
 			
+			idxTo = (idxTo >= this.getSize()) ? this.getSize() - 1 : idxTo;
+			idxTo = (idxTo < 0) ? 0 : idxTo; 
 			if (toType == ConnectionType.EXCITATORY) {
 				this.k[idxTo].connect(output, wNorm, delay);
 			} else {

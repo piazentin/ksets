@@ -40,6 +40,10 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		}
 	}
 	
+	public double getLearningRate() {
+		return this.learningRate;
+	}
+	
 	public void train() {
 		double meanStd = 0.0;
 		double[] std = new double[k.length];
