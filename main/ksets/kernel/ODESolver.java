@@ -11,7 +11,6 @@ public class ODESolver implements Serializable {
 
 	/**
 	 * Solving the ODE by Runge-Kutta's method. 
-	 * Using the method from the original Roman Ilin implementation in matlab.
 	 * @param x is the activation
 	 * @param y is the derivative of x. Thus x' = y
 	 * @param I is the right-hand side of the equation, the input.

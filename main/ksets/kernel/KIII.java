@@ -21,6 +21,10 @@ public class KIII implements Serializable {
 	private boolean detectInstability = false; 
 	private boolean[] trainLayer;
 
+	public KIII() {
+		
+	}
+	
 	/**
 	 * Create a new KIII with the default configurations from the old matlab implementation.
 	 * @param size
