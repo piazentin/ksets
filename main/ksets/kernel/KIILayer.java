@@ -24,7 +24,7 @@ public class KIILayer extends KLayer implements Serializable {
 		}
 		
 		// Normalize the Weights in function of the layer size
-		this.nLatConnections = size > 1 ? size - 1 : 1;//;
+		this.nLatConnections = size > 1 ? size : 1;//;
 		if (size > 1) {
 			wLat_ee = wLat_ee / nLatConnections;
 			wLat_ii = wLat_ii / nLatConnections;

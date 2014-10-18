@@ -35,7 +35,7 @@ public class Config {
 	}
 	
 	public static int incTime() {
-		time = (++time) % historySize;
+		time = (time + 1) % historySize;
 		return time;
 	}
 	
@@ -46,7 +46,8 @@ public class Config {
 
 	private static int id = 0;
 	public static int getNextId() {
-		return id++;
+		id = id + 1;
+		return id;
 	}
 	
 }
