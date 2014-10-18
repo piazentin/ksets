@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/6681/denisrmp/ksets.png)](http://dx.doi.org/10.5281/zenodo.12288)
+
 Java K-sets implement levels KO to KIII of the Freeman K-set Models was built and is built. 
 The software developed in Java allows for easy integration with MATLAB and other environments. See the following Matlab example: 
 
