@@ -1,11 +1,11 @@
-package main.ksets.kernel;
+package com.piazentin.ml.jkset;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import static main.ksets.kernel.Config.getTime;
+import static com.piazentin.ml.jkset.Config.getTime;
 
 public class KO implements Kset, Runnable, Serializable {
 

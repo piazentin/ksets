@@ -1,4 +1,4 @@
-package main.ksets.kernel;
+package com.piazentin.ml.jkset;
 
 import java.io.Serializable;
 
@@ -21,7 +21,6 @@ public class LowerOutputAdapter implements Layer, Serializable {
 	}
 	
 	
-	@Override
 	/**
 	 * Get the lower output from the origin K set
 	 * @return The lower output from the K set
@@ -30,7 +29,7 @@ public class LowerOutputAdapter implements Layer, Serializable {
 		return origin.getInhibitoryOutput();
 	}
 
-	@Override
+
 	/**
 	 * Get the delayed lower output from the origin K set
 	 * @param delay The delay
@@ -40,36 +39,36 @@ public class LowerOutputAdapter implements Layer, Serializable {
 		return origin.getInhibitoryOutput(delay);
 	}
 
+	
 	public void run() {
 		origin.run();
 	}
 
-	@Override
+
 	public int getSize() {
 		return origin.getSize();
 	}
 
 
-	@Override
 	public HasOutput getUnit(int index) {
 		return origin.getUnit(index);
 	}
 
 	/**
-	 * get the layer INHIBITORY output with a delay
+	 * get the layer INHIBITORY output
 	 */
-	@Override
 	public double[] getLayerOutput() {
 		return origin.getLayerInhibitoryOutput();
 	}
+	
 
 	/**
 	 * get the layer INHIBITORY output with a delay
 	 */
-	@Override
 	public double[] getLayerOutput(int delay) {
 		return origin.getLayerInhibitoryOutput(delay);
 	}
+	
 	
 	/**
 	 * set external stimulus in the EXCITATORY layer
@@ -78,7 +77,7 @@ public class LowerOutputAdapter implements Layer, Serializable {
 		origin.setExternalStimulus(stimulus);
 	}
 
-	@Override
+
 	public double[] getWeights() {
 		return origin.getInhibitoryWeights();
 	}
@@ -86,5 +85,4 @@ public class LowerOutputAdapter implements Layer, Serializable {
 	public double[][] getHistory() {
 		return origin.getInhibitoryHistory();
 	}
-
 }

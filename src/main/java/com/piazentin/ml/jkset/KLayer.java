@@ -1,4 +1,4 @@
-package main.ksets.kernel;
+package com.piazentin.ml.jkset;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -22,16 +22,19 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 	protected int nLatConnections;
 	private double learningRate;
 	
+	
 	public KLayer(int size) {
 		id = Config.getNextId();
 		this.size = size;
 	}
+	
 	
 	public void run(){
 		for (int i = 0; i < this.k.length; i++) {
 			k[i].run();
 		};
 	}
+	
 	
 	public void setExternalStimulus(double[] stimulus) {		
 		for (int i = 0; i < this.k.length; ++i) {
@@ -40,9 +43,11 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		}
 	}
 	
+	
 	public double getLearningRate() {
 		return this.learningRate;
 	}
+	
 	
 	public void train() {
 		double meanStd = 0.0;
@@ -73,22 +78,27 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		weightsHistory.add(getWeights());
 	}
 	
+	
 	public void setLearningRate(double alpha) {
 		this.learningRate = alpha;
 	}
 	
+	
 	protected void setLateralConnections(Connection[][] latConnections) {
 		this.latConnections = latConnections;
 	}
+	
 	
 	public void injectNoise(double mean, double standardDeviation) {
 		this.injectNoise = true;
 		this.noise = new NoiseGenerator(mean, standardDeviation);
 	}
 	
+	
 	public double[] getLayerOutput() {
 		return this.getLayerOutput(0);
 	}
+	
 	
 	public double[] getLayerOutput(int delay) {
 		double[] output = new double[this.k.length];
@@ -99,12 +109,14 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		return output;
 	}
 	
+	
 	/**
 	 * Returns the average activation from all excitatory nodes
 	 */
 	public double getOutput() {
 		return this.getOutput(0);
 	}
+	
 	
 	/**
 	 * Returns the average activation from all excitatory nodes at time (now - delay)
@@ -119,6 +131,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		return sum / this.size;
 	}
 	
+	
 	public double[][] getHistory() {
 		double[][] history = new double[getSize()][];
 		
@@ -128,6 +141,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		
 		return history;
 	}
+	
 	
 	public double[][] getActivation() {
 		double[][] activation = new double[getSize()][];
@@ -139,6 +153,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		return activation;
 	}
 	
+	
 	public double[] getActivationStd() {
 		double[] std = new double[k.length];
 		
@@ -149,6 +164,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		return std;
 	}
 	
+	
 	public double[] getActivationMean() {
 		double[] mean = new double[k.length];
 		
@@ -158,6 +174,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		
 		return mean;
 	}
+	
 
 	protected double stardardDeviation(double[] x) {
 		double sum = 0;
@@ -170,6 +187,7 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		return Math.sqrt(sum/x.length);	
 	}
 	
+	
 	private double mean(double[] x) {
 		double sum = 0;
 		
@@ -180,13 +198,16 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		return sum/x.length;
 	}
 	
+	
 	public int getSize() {
 		return this.size;
 	}
 	
+	
 	public Kset getUnit(int index) {
 		return this.k[index];
 	}
+	
 	
 	public double[] getWeights() {
 		double[] weights = new double[getSize() * (getSize() - 1)];
@@ -201,12 +222,13 @@ public abstract class KLayer implements Layer, Runnable, Comparable<Object>, Ser
 		
 		return weights;
 	}
+
 	
 	public double[][] getWeightsHistory() {
 		return Utils.toMatrix(weightsHistory);
 	}
 	
-	@Override
+
 	public int compareTo(Object o) {
 		if (o instanceof KLayer) 
 			return (((KLayer) o).getId() == this.getId()) ? 0 : 1;

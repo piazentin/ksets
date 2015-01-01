@@ -1,4 +1,4 @@
-package main.ksets.kernel;
+package com.piazentin.ml.jkset;
 
 public interface HasOutput {
 	

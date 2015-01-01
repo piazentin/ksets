@@ -1,4 +1,4 @@
-package main.ksets.kernel;
+package com.piazentin.ml.jkset;
 
 public class KI implements Kset {
 	
@@ -43,7 +43,6 @@ public class KI implements Kset {
 	 * Return the output at the current network time t.
 	 * Output is from the first KO in the set (k[0])
 	 */
-	@Override
 	public double getOutput() {
 		return k[0].getOutput();
 	}

@@ -1,4 +1,4 @@
-package main.ksets.kernel;
+package com.piazentin.ml.jkset;
 
 public interface Kset extends HasOutput {
 	Connection connect(HasOutput k, double w);

@@ -1,8 +1,8 @@
-package test.ksets.kernel;
+package com.piazentin.ml.jkset;
 
 import static org.junit.Assert.*;
-import main.ksets.kernel.Config;
-import main.ksets.kernel.KO;
+import com.piazentin.ml.jkset.Config;
+import com.piazentin.ml.jkset.KO;
 
 
 import org.junit.Test;

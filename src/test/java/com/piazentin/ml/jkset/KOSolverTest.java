@@ -1,7 +1,7 @@
-package test.ksets.kernel;
+package com.piazentin.ml.jkset;
 
 import static org.junit.Assert.*;
-import main.ksets.kernel.ODESolver;
+import com.piazentin.ml.jkset.ODESolver;
 
 
 import org.junit.Test;
